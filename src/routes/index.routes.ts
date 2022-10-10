@@ -7,6 +7,7 @@ import {ChargePurchases} from '../controllers/recordPurchases.controller'
 import {inventoryQuantities} from '../controllers/checkInventoryQuantities.controller'
 import { connectToApi } from '../controllers/setUrlToAPi.controller';
 import {TradeOrder} from '../controllers/tradeOrder.controller'
+import {DataCollector} from '../controllers/dataRecolector.controller'
 const router = Router();
 router.route('/search-prices').post(SearchPrices)
 router.route('/all-products').get(allProducts)
@@ -36,4 +37,5 @@ router.route('/trade-order/number/:idalmacen').get(TradeOrder.getNumberOrder)
 router.route('/trade-order/get-id').get(TradeOrder.getIdTradeOrder)
 router.route('/trade-order/get-order/:numero/:idalmacen').get(TradeOrder.ordersByWarehouseAndNumber)
 router.route('/trade-order/create-client').post(TradeOrder.createClient)
+router.route('/data-collector').post(DataCollector.searchProductBarcode)
 export default router;
