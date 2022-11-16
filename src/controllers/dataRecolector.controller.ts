@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
-import { ISearchByBarcodeToCollector } from '../interface/barcode.interface'
-
+import { ISearchByBarcodeToCollector  } from '../interface/barcode.interface'
+import * as fsFiles from 'fs';
 export class DataCollector {
 
 
@@ -23,7 +23,39 @@ export class DataCollector {
         }
 
     }
-   
+
+    static createTextFile = async (req: Request, res: Response) => {
+
+
+        try {
+
+            const finalData= req.body
+            const dataParsed=JSON.stringify(finalData)
+            const dateNow = new Date()
+            let dateGenerated = dateNow.getTime()
+            const directoryToSave = process.env.DIRECTORYTOSAVE
+            console.log(dateGenerated, finalData)
+            //@ts-ignore
+            fsFiles.writeFile(directoryToSave + '/inventario' + dateGenerated + '.txt', dataParsed, error => {
+                if (error) {
+                    console.log(error);
+                    res.status(500).json({ error: error })
+                } else
+                    res.json({ message: 'El archivo fue creado' });
+
+            })
+
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ error: error })
+        }
+
+    }
+
+
+
+
+
 }
 
 
