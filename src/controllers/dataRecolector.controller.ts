@@ -1,9 +1,10 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
-import { ISearchByBarcodeToCollector  } from '../interface/barcode.interface'
+import { ISearchByBarcodeToCollector } from '../interface/barcode.interface'
 import * as fsFiles from 'fs';
-export class DataCollector {
 
+
+export class DataCollector {
 
     /**
    * Buscar producto por codigo de barras
@@ -24,24 +25,39 @@ export class DataCollector {
 
     }
 
+    /**
+ * Crear archivo txt en el servidor pos
+ */
     static createTextFile = async (req: Request, res: Response) => {
 
-
         try {
+            const data = req.body
+            const finalDataCollector = JSON.stringify(data);
+            let barcode: any = [];
+            const finalDataParsed = JSON.parse(finalDataCollector);
+            finalDataParsed.forEach((collector: any) => {
+                barcode.push(
+                    collector.barcode + collector.coma + collector.amount + "\n"
+                );
+            });
 
-            const finalData= req.body
-            const dataParsed=JSON.stringify(finalData)
+            const dataToFiletext = barcode.join("")
             const dateNow = new Date()
             let dateGenerated = dateNow.getTime()
             const directoryToSave = process.env.DIRECTORYTOSAVE
-            console.log(dateGenerated, finalData)
+
             //@ts-ignore
-            fsFiles.writeFile(directoryToSave + '/inventario' + dateGenerated + '.txt', dataParsed, error => {
+            fsFiles.writeFile(directoryToSave + '/inventario' + dateGenerated + '.txt', dataToFiletext, error => {
                 if (error) {
                     console.log(error);
                     res.status(500).json({ error: error })
-                } else
-                    res.json({ message: 'El archivo fue creado' });
+                } else {
+                    res.json({
+                        message: 'El archivo fue creado',
+                        code: dateGenerated
+                    });
+                    console.log("archivo creado con el codigo" + dateGenerated);
+                }
 
             })
 
@@ -49,12 +65,7 @@ export class DataCollector {
             console.log(error)
             return res.status(500).json({ error: error })
         }
-
     }
-
-
-
-
 
 }
 
