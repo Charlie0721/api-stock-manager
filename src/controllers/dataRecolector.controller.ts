@@ -56,7 +56,7 @@ export class DataCollector {
                         message: 'El archivo fue creado',
                         code: dateGenerated
                     });
-                    console.log("archivo creado con el codigo" + dateGenerated);
+                    console.log("archivo creado con el codigo: " + dateGenerated);
                 }
 
             })

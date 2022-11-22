@@ -7,11 +7,14 @@ export interface ItradeOrderHeader {
     subtotal: number;
     valortotal: number;
     valdescuento: number;
-    valdescuentos: number; 
+    valdescuentos: number;
     valretenciones: number;
     idalmacen: number;
     estado: number;
-    detpedidos: ItradeOrderDetail[]; 
+    detalle?: string,
+    idsoftware: number;
+    plazo: number;
+    detpedidos: ItradeOrderDetail[];
 }
 
 
@@ -26,6 +29,6 @@ export interface ItradeOrderDetail {
     porciva?: number;
     costoprod: number;
     despachado: number;
-    
+
 
 }

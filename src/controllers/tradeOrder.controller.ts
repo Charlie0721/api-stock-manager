@@ -19,7 +19,7 @@ export class TradeOrder {
         pedidos
       WHERE
         idalmacen = ${idalm} AND numero > 0;`);
-          
+
             return res.json(number[0]);
 
 
@@ -119,8 +119,8 @@ export class TradeOrder {
                 const newOrder: ItradeOrderHeader = req.body;
 
 
-                const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,subtotal,valortotal,valdescuentos,valretenciones,idalmacen,idvendedor,estado)
-                VALUES (?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.subtotal, newOrder.valortotal, newOrder.valdescuento, newOrder.valretenciones, newOrder.idalmacen, newOrder.idvendedor, newOrder.estado]);
+                const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,subtotal,valortotal,valdescuentos,valretenciones,detalle,plazo,idalmacen,idvendedor,estado,idsoftware)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.subtotal, newOrder.valortotal, newOrder.valdescuento, newOrder.valretenciones, newOrder.detalle, newOrder.plazo, newOrder.idalmacen, newOrder.idvendedor, newOrder.estado, newOrder.idsoftware]);
 
                 const result = Object.values(JSON.parse(JSON.stringify(responseOrder)));
                 newOrder.detpedidos.forEach(async (item) => {
