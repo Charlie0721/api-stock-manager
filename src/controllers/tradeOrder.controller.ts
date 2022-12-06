@@ -28,7 +28,6 @@ export class TradeOrder {
             return res.status(500).json({ error: error })
         }
 
-
     }
 
     /**Obtener productos activos */
@@ -119,19 +118,28 @@ export class TradeOrder {
                 const newOrder: ItradeOrderHeader = req.body;
 
 
-                const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,subtotal,valortotal,valdescuentos,valretenciones,detalle,plazo,idalmacen,idvendedor,estado,idsoftware)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.subtotal, newOrder.valortotal, newOrder.valdescuento, newOrder.valretenciones, newOrder.detalle, newOrder.plazo, newOrder.idalmacen, newOrder.idvendedor, newOrder.estado, newOrder.idsoftware]);
-
+                const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,idvendedor,subtotal,valortotal,valdescuentos,valretenciones,detalle,fechacrea,hora,plazo,idalmacen,estado,idsoftware)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle,newOrder.fechacrea, newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware]);
                 const result = Object.values(JSON.parse(JSON.stringify(responseOrder)));
-                newOrder.detpedidos.forEach(async (item) => {
-                    result[2] = item.idpedido
-                    await conn.query(`INSERT INTO detpedidos (idpedido,idproducto,cantidad,valorprod,descuento,codiva,porciva,costoprod,despachado)
-                    VALUES (?,?,?,?,?,?,?,?,?)`, [item.idpedido, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.codiva, item.porciva, item.costoprod, item.despachado]);
+                const insertId = await conn.query(`SELECT LAST_INSERT_ID();`)
+                let destructuringInsertId = JSON.stringify(insertId[0])
 
-                })
+                if (destructuringInsertId) {
+
+                    newOrder.detpedidos.forEach(async (item) => {
+                        destructuringInsertId = item.idpedido
+                        await conn.query(`INSERT INTO detpedidos (idpedido,idproducto,cantidad,valorprod,descuento,codiva,porciva,costoprod,despachado)
+                               VALUES (?,?,?,?,?,?,?,?,?)`, [destructuringInsertId, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.codiva, item.porciva, item.costoprod, item.despachado]);
+                    })
+
+
+                } else {
+                    return res.status(400).json({ message: "id not found !!!" })
+                }
+
                 await conn.query(`COMMIT`);
                 if (responseOrder)
-                    return res.status(200).json({ responseOrder, ...newOrder });
+                    return res.status(200).json({ id: destructuringInsertId, responseOrder, ...newOrder, });
             } catch (error) {
                 await conn.query(`ROLLBACK`);
                 console.log(error);
@@ -143,7 +151,7 @@ export class TradeOrder {
         }
     }
 
-    /*obtener el id del ultimo pedido insertado*/
+    // /*obtener el id del ultimo pedido insertado*/
     static getIdTradeOrder = async (req: Request, res: Response): Promise<Response> => {
         try {
             const conn = await connect();
@@ -156,9 +164,8 @@ export class TradeOrder {
             console.log(error)
             return res.status(500).json({ error: error })
         }
-
-
     }
+
     /**
      * Consultar el pedido ingresado por aplicación
     */
