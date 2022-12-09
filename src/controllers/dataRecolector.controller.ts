@@ -46,7 +46,6 @@ export class DataCollector {
             let dateGenerated = dateNow.getTime()
             const directoryToSave = process.env.DIRECTORYTOSAVE
 
-            //@ts-ignore
             fsFiles.writeFile(directoryToSave + '/inventario' + dateGenerated + '.txt', dataToFiletext, error => {
                 if (error) {
                     console.log(error);
