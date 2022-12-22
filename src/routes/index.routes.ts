@@ -1,7 +1,7 @@
 import {Router}  from 'express'
 import { InventoryMovements } from '../controllers/inventoryMovements.controller';
 import { SearchPrices } from '../controllers/searchDate.controller';
-import { allProducts } from '../controllers/todosProductos.controller';
+import { Product } from '../controllers/todosProductos.controller';
 import {UpdateProduct, getProductById  } from '../controllers/updateProduct.controller';
 import {ChargePurchases} from '../controllers/recordPurchases.controller'
 import {inventoryQuantities} from '../controllers/checkInventoryQuantities.controller'
@@ -10,7 +10,7 @@ import {TradeOrder} from '../controllers/tradeOrder.controller'
 import {DataCollector} from '../controllers/dataRecolector.controller'
 const router = Router();
 router.route('/search-prices').post(SearchPrices)
-router.route('/all-products').get(allProducts)
+router.route('/all-products').get(Product.allProducts)
 router.route('/update-products/:idproducto').put(UpdateProduct)
 router.route('/product/:idproducto').get(getProductById)
 router.route('/mov-inventarios/numero-entradas/:idalmacen').get(InventoryMovements.numberOfEntrie)
