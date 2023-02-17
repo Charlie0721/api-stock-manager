@@ -112,11 +112,9 @@ export class TradeOrder {
             const pool = await connect();
             const conn = await pool.getConnection();
 
-
             try {
                 await conn.query(`START TRANSACTION`);
                 const newOrder: ItradeOrderHeader = req.body;
-
 
                 const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,idvendedor,subtotal,valortotal,valdescuentos,valretenciones,detalle,fechacrea,hora,plazo,idalmacen,estado,idsoftware)
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle,newOrder.fechacrea, newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware]);

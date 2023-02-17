@@ -39,4 +39,6 @@ router.route('/trade-order/get-order/:numero/:idalmacen').get(TradeOrder.ordersB
 router.route('/trade-order/create-client').post(TradeOrder.createClient)
 router.route('/data-collector').post(DataCollector.searchProductBarcode)
 router.route('/data-collector/create-file').post(DataCollector.createTextFile)
+router.route('/data-collector/transfers').get(DataCollector.searchWarehousesActive)
+router.route('/data-collector/transfers').post(DataCollector.createTextFileTransfers)
 export default router;
