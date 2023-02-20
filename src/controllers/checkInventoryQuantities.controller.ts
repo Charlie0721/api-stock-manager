@@ -15,7 +15,7 @@ const redis = new Redis({
 export const inventoryQuantities = async (req: Request, res: Response) => {
 
     try {
-        const key = "products"
+        const key = "products-quantities"
         const cachedData = await redis.get(key);
         const conn = await connect();
 

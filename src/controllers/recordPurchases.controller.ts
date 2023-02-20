@@ -20,7 +20,7 @@ export class ChargePurchases {
         static activeProductsToPurchases = async (req: Request, res: Response) => {
 
             try {
-                const key = "products"
+                const key = "products-purchases"
                 const cachedData = await redis.get(key);
                 const conn = await connect();
                 if (cachedData) {

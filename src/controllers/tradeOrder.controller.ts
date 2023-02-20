@@ -41,7 +41,7 @@ export class TradeOrder {
     static getProducts = async (req: Request, res: Response)=> {
 
         try {
-            const key = "products"
+            const key = "products-wharehouses"
             const cachedData = await redis.get(key);
             const conn = await connect();
             const idalmacen = req.params.idalmacen;

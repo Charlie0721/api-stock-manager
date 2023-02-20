@@ -1,7 +1,11 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
 import { IIngMovInvEntrada } from '../interface/movementInventory.interface';
-
+import Redis from 'ioredis';
+const redis = new Redis({
+    host: 'localhost',
+    port: 6379,
+});
 
 export class InventoryMovements {
 
@@ -62,16 +66,29 @@ export class InventoryMovements {
      *obtener stock de productos
     */
 
-    static getProductStock = async (req: Request, res: Response): Promise<Response> => {
+    static getProductStock = async (req: Request, res: Response) => {
         try {
+
+
+
+            const key = "products-stock"
+            const cachedData = await redis.get(key);
             const conn = await connect();
             const idalmacen: string = req.params.idalmacen
-            const stockProducto = await conn.query(`SELECT productos.idproducto, productos.costo, productos.precioventa, productos.descripcion,productos.barcode,productos.codigo, inventario.cantidad as cantidadAct, almacenes.nomalmacen 
-            FROM inventario
-            INNER JOIN productos ON inventario.idproducto = productos.idproducto 
-            INNER JOIN almacenes ON inventario.idalmacen = almacenes.idalmacen 
-            WHERE inventario.idalmacen= ${idalmacen} `)
-            return res.status(200).json(stockProducto[0])
+
+            if (cachedData) {
+                res.json(JSON.parse(cachedData));
+            } else {
+
+                const stockProducto = await conn.query(`SELECT productos.idproducto, productos.costo, productos.precioventa, productos.descripcion,productos.barcode,productos.codigo, inventario.cantidad as cantidadAct, almacenes.nomalmacen 
+                FROM inventario
+                INNER JOIN productos ON inventario.idproducto = productos.idproducto 
+                INNER JOIN almacenes ON inventario.idalmacen = almacenes.idalmacen 
+                WHERE inventario.idalmacen= ${idalmacen} `)
+                await redis.set(key, JSON.stringify(stockProducto[0]));
+                return res.status(200).json(stockProducto[0])
+            }
+
         }
 
         catch (error) {
@@ -119,21 +136,21 @@ export class InventoryMovements {
         }
     }
 
-        /*obtener el id del ultimo pedido insertado*/
-        static getIdMovement = async (req: Request, res: Response): Promise<Response> => {
-            try {
-                const conn = await connect();
-                const idPurshable = await conn.query(`SELECT
+    /*obtener el id del ultimo pedido insertado*/
+    static getIdMovement = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const conn = await connect();
+            const idPurshable = await conn.query(`SELECT
             idajuste
           FROM
             ctrajustes;`)
-                return res.status(200).json(idPurshable[0])
-            } catch (error) {
-                console.log(error)
-                return res.status(500).json({ error: error })
-            }
-    
-            
+            return res.status(200).json(idPurshable[0])
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ error: error })
         }
+
+
+    }
 }
 
