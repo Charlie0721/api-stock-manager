@@ -26,8 +26,8 @@ export const inventoryQuantities = async (req: Request, res: Response) => {
             FROM inventario
             INNER JOIN productos ON inventario.idproducto = productos.idproducto
             INNER JOIN almacenes ON inventario.idalmacen = almacenes.idalmacen ORDER BY productos.idproducto`)
-            await redis.set(key, JSON.stringify(responseQuantities));
-            return res.status(200).json(responseQuantities)
+            await redis.set(key, JSON.stringify(responseQuantities[0]));
+            return res.status(200).json(responseQuantities[0])
         }
 
 
