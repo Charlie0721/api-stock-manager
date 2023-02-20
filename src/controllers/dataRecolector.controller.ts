@@ -3,7 +3,6 @@ import { connect } from '../database'
 import { ISearchByBarcodeToCollector } from '../interface/barcode.interface'
 import * as fsFiles from 'fs';
 
-
 export class DataCollector {
 
     /**

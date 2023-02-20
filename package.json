@@ -16,8 +16,11 @@
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "express": "^4.17.3",
+    "ioredis": "^5.3.1",
     "morgan": "^1.10.0",
-    "mysql2": "^2.3.3"
+    "mysql2": "^2.3.3",
+    "redis": "^4.6.4",
+    "response-time": "^2.3.2"
   },
   "devDependencies": {
     "@types/compression": "^1.7.2",
@@ -27,6 +30,8 @@
     "@types/mysql": "^2.15.21",
     "@types/mysql2": "github:types/mysql2",
     "@types/node": "^18.11.9",
+    "@types/redis": "^4.0.11",
+    "@types/response-time": "^2.3.5",
     "nodemon": "^2.0.15",
     "ts-node": "^10.8.0",
     "typescript": "^4.6.2"

@@ -3,7 +3,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import compression from 'compression';
-
+import responseTime from'response-time';
 dotenv.config();
 import IndexRoutes from './routes/index.routes'
 export class App {
@@ -23,6 +23,7 @@ export class App {
 
     middlewares() {
         this.app.use(morgan('dev'));
+        this.app.use(responseTime());
         this.app.use(express.urlencoded({ extended: false }));
         this.app.use(express.json());
         this.app.use(cors());

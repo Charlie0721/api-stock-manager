@@ -2,6 +2,13 @@ import { Request, Response } from 'express'
 import { connect } from '../database'
 import { IHeaderPurchases } from '../interface/recordPurchases.interface'
 
+import Redis from 'ioredis';
+
+const redis = new Redis({
+    host: 'localhost',
+    port: 6379,
+});
+
 
 export class ChargePurchases {
 
@@ -10,19 +17,27 @@ export class ChargePurchases {
    * Traer datos basicos de productos activos
    */
 
-        static activeProductsToPurchases = async (req: Request, res: Response): Promise<Response> => {
+        static activeProductsToPurchases = async (req: Request, res: Response) => {
 
             try {
+                const key = "products"
+                const cachedData = await redis.get(key);
                 const conn = await connect();
-                const products = await conn.query(`SELECT idproducto, descripcion, barcode, codigo, costo, codiva, precioventa FROM productos WHERE estado=1`);
-                return res.json(products[0]);
+                if (cachedData) {
+                    res.json(JSON.parse(cachedData));
+                } else {
+
+                  const products = await conn.query(`SELECT idproducto, descripcion, barcode, codigo, costo, codiva, precioventa FROM productos WHERE estado=1`);
+                  await redis.set(key, JSON.stringify(products[0]));
+                  return res.json(products[0]);
+                }
             } catch (error) {
                 console.log(error)
                 return res.status(500).json({ error: error })
             }
         }
 
-
+  
         /**
          * Consultar numero de compra por almacen 
          */

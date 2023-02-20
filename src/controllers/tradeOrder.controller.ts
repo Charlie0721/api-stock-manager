@@ -2,7 +2,12 @@ import { Request, Response } from 'express';
 import { connect } from '../database';
 import { ItradeOrderHeader } from '../interface/tradeOrder.interface'
 import { IcreateClient } from '../interface/createClient.interface'
+import Redis from 'ioredis';
 
+const redis = new Redis({
+    host: 'localhost',
+    port: 6379,
+});
 
 export class TradeOrder {
 
@@ -11,6 +16,7 @@ export class TradeOrder {
     static getNumberOrder = async (req: Request, res: Response): Promise<Response> => {
 
         try {
+            
             const conn = await connect();
             const idalm = req.params.idalmacen;
             const number = await conn.query(`SELECT
@@ -32,17 +38,27 @@ export class TradeOrder {
 
     /**Obtener productos activos */
 
-    static getProducts = async (req: Request, res: Response): Promise<Response> => {
+    static getProducts = async (req: Request, res: Response)=> {
 
         try {
+            const key = "products"
+            const cachedData = await redis.get(key);
             const conn = await connect();
             const idalmacen = req.params.idalmacen;
-            const products = await conn.query(`SELECT productos.idproducto, productos.costo, productos.ultcosto, productos.codiva, productos.precioventa, productos.descripcion,productos.barcode,productos.codigo, inventario.cantidad, almacenes.nomalmacen 
-            FROM inventario
-            INNER JOIN productos ON inventario.idproducto = productos.idproducto 
-            INNER JOIN almacenes ON inventario.idalmacen = almacenes.idalmacen 
-            WHERE inventario.idalmacen= ${idalmacen}`);
-            return res.json(products[0]);
+
+            if (cachedData) {
+                res.json(JSON.parse(cachedData));
+            } else {
+                const products = await conn.query(`SELECT productos.idproducto, productos.costo, productos.ultcosto, productos.codiva, productos.precioventa, productos.descripcion,productos.barcode,productos.codigo, inventario.cantidad, almacenes.nomalmacen 
+                FROM inventario
+                INNER JOIN productos ON inventario.idproducto = productos.idproducto 
+                INNER JOIN almacenes ON inventario.idalmacen = almacenes.idalmacen 
+                WHERE inventario.idalmacen= ${idalmacen}`);
+                await redis.set(key, JSON.stringify(products[0]));
+                return res.json(products[0]);
+            }
+
+
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
