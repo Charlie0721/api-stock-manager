@@ -1,12 +1,6 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
 
-import Redis from 'ioredis';
-
-const redis = new Redis({
-    host: 'localhost',
-    port: 6379,
-});
 
 export class Product {
 
@@ -15,32 +9,43 @@ export class Product {
 
 
         try {
-            const key = "products"
-            const cachedData = await redis.get(key);
+
             const conn = await connect();
-            if (cachedData) {
-                res.json(JSON.parse(cachedData));
+
+            const limit = Number(req.query.limit) || 10;
+            const page = Number(req.query.page) || 1;
+            const offset = (page - 1) * limit;
+            const descripcion = req.query.descripcion || '';
+            const barcode = req.query.barcode || '';
+
+
+            const productos = await conn.query(`SELECT   p.idproducto, p.barcode, p.costo, p.ultcosto, p.codigo, p.descripcion, p.precioventa, p.precioespecial1,
+            p.precioespecial2
+            FROM
+            productos p WHERE   estado = 1  AND 
+            (p.descripcion LIKE '%${descripcion}%') AND
+            (p.barcode LIKE '%${barcode}%')AND
+             LIMIT ${limit} OFFSET ${offset}
+            `)
+
+            if (productos.length > 0) {
+                const totalItems = productos.length;
+                const totalPages = Math.ceil(totalItems / limit);
+               
+                return res.json({
+                    products: productos[0],
+                    page: page, offset, limit,
+                    totalPages: totalPages
+                })
+
             } else {
-                const productos = await conn.query(`SELECT
-                productos.idproducto, productos.barcode, productos.costo, productos.ultcosto,productos.codigo, productos.descripcion, productos.precioventa,
-                productos.precioespecial1, productos.precioespecial2
-              FROM
-                productos
-              WHERE
-                estado = 1`)
-                await redis.set(key, JSON.stringify(productos[0]));
-                if (productos.length > 0) {
+                return res.json({ message: 'products not found' })
 
-                    return res.json(productos[0])
-
-                } else {
-                    return res.json({ message: 'products not found' })
-
-                }
             }
+        }
 
 
-        } catch (error) {
+        catch (error) {
             console.log(error)
         }
 

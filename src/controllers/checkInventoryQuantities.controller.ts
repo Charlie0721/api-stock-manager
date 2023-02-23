@@ -2,10 +2,7 @@ import { Request, Response } from 'express'
 import { connect } from '../database'
 import Redis from 'ioredis';
 
-const redis = new Redis({
-    host: 'localhost',
-    port: 6379,
-});
+
 
 /**
  * Traer productos con cantidades 
@@ -15,21 +12,31 @@ const redis = new Redis({
 export const inventoryQuantities = async (req: Request, res: Response) => {
 
     try {
-        const key = "products-quantities"
-        const cachedData = await redis.get(key);
+
         const conn = await connect();
+        const limit = Number(req.query.limit) || 10;
+        const page = Number(req.query.page) || 1;
+        const offset = (page - 1) * limit;
+        const descripcion = req.query.descripcion || '';
+        const barcode = req.query.barcode || '';
 
-        if (cachedData) {
-            res.json(JSON.parse(cachedData));
-        } else {
-            const responseQuantities = await conn.query(`SELECT productos.idproducto,productos.barcode, productos.codigo, productos.descripcion, inventario.cantidad, almacenes.nomalmacen
-            FROM inventario
-            INNER JOIN productos ON inventario.idproducto = productos.idproducto
-            INNER JOIN almacenes ON inventario.idalmacen = almacenes.idalmacen ORDER BY productos.idproducto`)
-            await redis.set(key, JSON.stringify(responseQuantities[0]));
-            return res.status(200).json(responseQuantities[0])
-        }
-
+        const responseQuantities = await conn.query(`SELECT p.idproducto, p.barcode, p.codigo, p.descripcion, i.cantidad, alm.nomalmacen
+      FROM
+        inventario i
+        INNER JOIN productos p ON i.idproducto = p.idproducto
+        INNER JOIN almacenes alm ON i.idalmacen = alm.idalmacen
+      WHERE   p.estado = 1 AND (p.descripcion LIKE '%${descripcion} %')AND
+      (p.barcode LIKE '%${barcode}%') 
+      ORDER BY
+      p.idproducto  
+      LIMIT ${limit} OFFSET ${offset}`)
+        const totalItems = responseQuantities.length;
+        const totalPages = Math.ceil(totalItems / limit);
+        return res.status(200).json({
+            inventory: responseQuantities[0],
+            page: page, offset, limit,
+            totalPages: totalPages
+        })
 
     } catch (error) {
         console.log(error)
