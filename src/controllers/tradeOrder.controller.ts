@@ -16,7 +16,7 @@ export class TradeOrder {
     static getNumberOrder = async (req: Request, res: Response): Promise<Response> => {
 
         try {
-            
+
             const conn = await connect();
             const idalm = req.params.idalmacen;
             const number = await conn.query(`SELECT
@@ -38,25 +38,41 @@ export class TradeOrder {
 
     /**Obtener productos activos */
 
-    static getProducts = async (req: Request, res: Response)=> {
-
+    static getProducts = async (req: Request, res: Response) => {
+            
         try {
-            const key = "products-wharehouses"
-            const cachedData = await redis.get(key);
+
             const conn = await connect();
             const idalmacen = req.params.idalmacen;
+            const limit = Number(req.query.limit) || 10;
+            const page = Number(req.query.page) || 1;
+            const offset = (page - 1) * limit;
+            const descripcion = req.query.descripcion || '';
+            const barcode = req.query.barcode || '';
 
-            if (cachedData) {
-                res.json(JSON.parse(cachedData));
-            } else {
-                const products = await conn.query(`SELECT productos.idproducto, productos.costo, productos.ultcosto, productos.codiva, productos.precioventa, productos.descripcion,productos.barcode,productos.codigo, inventario.cantidad, almacenes.nomalmacen 
-                FROM inventario
-                INNER JOIN productos ON inventario.idproducto = productos.idproducto 
-                INNER JOIN almacenes ON inventario.idalmacen = almacenes.idalmacen 
-                WHERE inventario.idalmacen= ${idalmacen}`);
-                await redis.set(key, JSON.stringify(products[0]));
-                return res.json(products[0]);
-            }
+            const products = await conn.query(`SELECT
+            p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen
+          FROM
+            inventario i
+            INNER JOIN productos p ON i.idproducto = p.idproducto
+            INNER JOIN almacenes alm ON i.idalmacen = alm.idalmacen
+          WHERE
+            i.idalmacen = ${idalmacen} AND p.estado = 1
+            AND (p.descripcion LIKE '%${descripcion}%')
+            AND (p.barcode LIKE '%${barcode}%')
+          ORDER BY
+            p.idproducto
+          LIMIT
+          ${limit} OFFSET ${offset} 
+          `);
+            const totalItems = products.length;
+            const totalPages = Math.ceil(totalItems / limit);
+            return res.json({
+                products: products[0],
+                page: page, offset, limit,
+                totalPages: totalPages
+            });
+
 
 
         } catch (error) {
@@ -133,7 +149,7 @@ export class TradeOrder {
                 const newOrder: ItradeOrderHeader = req.body;
 
                 const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,idvendedor,subtotal,valortotal,valdescuentos,valretenciones,detalle,fechacrea,hora,plazo,idalmacen,estado,idsoftware)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle,newOrder.fechacrea, newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware]);
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle, newOrder.fechacrea, newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware]);
                 const result = Object.values(JSON.parse(JSON.stringify(responseOrder)));
                 const insertId = await conn.query(`SELECT LAST_INSERT_ID();`)
                 let destructuringInsertId = JSON.stringify(insertId[0])
