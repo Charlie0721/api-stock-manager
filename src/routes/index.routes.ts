@@ -18,7 +18,7 @@ router.route('/mov-inventarios/terceros').get(InventoryMovements.listThirdPartie
 router.route('/mov-inventarios/almacenes').get(InventoryMovements.listWarehouses)
 router.route('/mov-inventarios/cabecera').post(InventoryMovements.saveInventoryMovement)
 router.route('/mov-inventarios/id-movimiento').get(InventoryMovements.getIdMovement)
-router.route('/mov-inventarios/obetener-cantidades/:idalmacen').get(InventoryMovements.getProductStock)
+router.route('/mov-inventarios/obetener-cantidades/:idalmacen/stock').get(InventoryMovements.getProductStock)
 router.route('/purchases/get-products').get(ChargePurchases.activeProductsToPurchases)
 router.route('/purchases/get-warehouses').get(ChargePurchases.getWarehousestoPurchases)
 router.route('/purchases/get-suppliers').get(ChargePurchases.getSuppliers)
