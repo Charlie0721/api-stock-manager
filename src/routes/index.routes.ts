@@ -8,6 +8,7 @@ import {inventoryQuantities} from '../controllers/checkInventoryQuantities.contr
 import { connectToApi } from '../controllers/setUrlToAPi.controller';
 import {TradeOrder} from '../controllers/tradeOrder.controller'
 import {DataCollector} from '../controllers/dataRecolector.controller'
+import {ControlTime} from '../controllers/control_time'
 const router = Router();
 router.route('/search-prices').post(SearchPrices)
 router.route('/all-products').get(Product.allProducts)
@@ -41,4 +42,5 @@ router.route('/data-collector').post(DataCollector.searchProductBarcode)
 router.route('/data-collector/create-file').post(DataCollector.createTextFile)
 router.route('/data-collector/transfers').get(DataCollector.searchWarehousesActive)
 router.route('/data-collector/transfers').post(DataCollector.createTextFileTransfers)
+router.route('/control-time').get(ControlTime.contolTime)
 export default router;
