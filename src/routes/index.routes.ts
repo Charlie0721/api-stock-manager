@@ -42,5 +42,5 @@ router.route('/data-collector').post(DataCollector.searchProductBarcode)
 router.route('/data-collector/create-file').post(DataCollector.createTextFile)
 router.route('/data-collector/transfers').get(DataCollector.searchWarehousesActive)
 router.route('/data-collector/transfers').post(DataCollector.createTextFileTransfers)
-router.route('/control-time').get(ControlTime.contolTime)
+router.route('/control-time').get(ControlTime.controlTime)
 export default router;

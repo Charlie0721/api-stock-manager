@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 
 export class ControlTime {
 
-    static contolTime = (req: Request, res: Response) => {
+    static controlTime = (req: Request, res: Response) => {
 
         //@ts-ignore    
         const getRemainingTime = deadline => {
