@@ -4,12 +4,9 @@ export interface ISearchByBarcodeToCollector {
 
 }
 
+export interface IAddBarcodes {
 
+    barcode: string;
+    
 
-// export interface IcreatedFile {
-
-//     barcode: string;
-//     coma: string;
-//     amount: number;
-
-// }
+}

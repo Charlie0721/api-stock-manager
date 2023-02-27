@@ -2,7 +2,7 @@ import {Router}  from 'express'
 import { InventoryMovements } from '../controllers/inventoryMovements.controller';
 import { SearchPrices } from '../controllers/searchDate.controller';
 import { Product } from '../controllers/todosProductos.controller';
-import {UpdateProduct, getProductById  } from '../controllers/updateProduct.controller';
+import {UpdateProduct, getProductById,addMultipleBarcodes } from '../controllers/updateProduct.controller';
 import {ChargePurchases} from '../controllers/recordPurchases.controller'
 import {inventoryQuantities} from '../controllers/checkInventoryQuantities.controller'
 import { connectToApi } from '../controllers/setUrlToAPi.controller';
@@ -14,6 +14,7 @@ router.route('/search-prices').post(SearchPrices)
 router.route('/all-products').get(Product.allProducts)
 router.route('/update-products/:idproducto').put(UpdateProduct)
 router.route('/product/:idproducto').get(getProductById)
+router.route('/product/add-barcodes/:idproducto').post(addMultipleBarcodes)
 router.route('/mov-inventarios/numero-entradas/:idalmacen').get(InventoryMovements.numberOfEntrie)
 router.route('/mov-inventarios/terceros').get(InventoryMovements.listThirdParties)
 router.route('/mov-inventarios/almacenes').get(InventoryMovements.listWarehouses)

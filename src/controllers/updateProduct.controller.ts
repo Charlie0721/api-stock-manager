@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
-import { IEditProduct } from '../interface/updateProduct.interface'
+import { IEditProduct } from '../interface/updateProduct.interface';
+import { IAddBarcodes } from '../interface/barcode.interface'
 
 export const UpdateProduct = async (req: Request, res: Response) => {
 
@@ -38,6 +39,33 @@ export const getProductById = async (req: Request, res: Response) => {
         return res.status(200).json(ProductByID[0])
     } catch (error) {
         console.log(error)
+    }
+
+}
+
+export const addMultipleBarcodes = async (req: Request, res: Response) => {
+
+    try {
+
+        const conn = await connect();
+        const id:string = req.params.idproducto;
+        const barcode:IAddBarcodes  = req.body;
+        const addBarcodes = await conn.query(`INSERT into barrasprod (idproducto, barcode) 
+        VALUES (?,?)`, [id, barcode.barcode])
+        return res.status(200).json({
+            message: 'barcode added',
+            addBarcodes
+        })
+
+    } catch (error) {
+
+        console.log(error);
+        return res.status(500).json({
+            message: 'Error!',
+            error: error
+        })
+
+
     }
 
 
