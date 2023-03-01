@@ -9,6 +9,7 @@ import { connectToApi } from '../controllers/setUrlToAPi.controller';
 import {TradeOrder} from '../controllers/tradeOrder.controller'
 import {DataCollector} from '../controllers/dataRecolector.controller'
 import {ControlTime} from '../controllers/control_time'
+import{TransfersToCxPos} from '../controllers/transfers_in_app'
 const router = Router();
 router.route('/search-prices').post(SearchPrices)
 router.route('/all-products').get(Product.allProducts)
@@ -44,4 +45,9 @@ router.route('/data-collector/create-file').post(DataCollector.createTextFile)
 router.route('/data-collector/transfers').get(DataCollector.searchWarehousesActive)
 router.route('/data-collector/transfers').post(DataCollector.createTextFileTransfers)
 router.route('/control-time').get(ControlTime.controlTime)
+router.get('/transfers/number-transfer-origin',TransfersToCxPos.getNumberTransfers)
+router.post('/transfers/send-transfer-origin',TransfersToCxPos.sendTransfer)
+router.get('/transfers/warehouses',TransfersToCxPos.getWarehousestoTransfer)
+router.get('/transfers/products/:idalmacen',TransfersToCxPos.getProducts)
+router.get('/transfers/get-id',TransfersToCxPos.getIdTransfer)
 export default router;

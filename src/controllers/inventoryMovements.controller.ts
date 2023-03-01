@@ -10,7 +10,7 @@ const redis = new Redis({
 export class InventoryMovements {
 
     /**
-     * concoer el numero de movimiento de inventario
+     * conocer el numero de movimiento de inventario
      */
     static numberOfEntrie = async (req: Request, res: Response): Promise<Response> => {
 

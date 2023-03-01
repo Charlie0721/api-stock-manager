@@ -181,7 +181,7 @@ export class TradeOrder {
         }
     }
 
-    // /*obtener el id del ultimo pedido insertado*/
+     /*obtener el id del ultimo pedido insertado*/
     static getIdTradeOrder = async (req: Request, res: Response): Promise<Response> => {
         try {
             const conn = await connect();
