@@ -207,14 +207,15 @@ export class TradeOrder {
             const numero = req.params.numero;
             const idAlm = req.params.idalmacen;
             const response = await conn.query(`SELECT
-            pedidos.numero, pedidos.valimpuesto, pedidos.subtotal, pedidos.valdescuentos, pedidos.valortotal, productos.descripcion, detpedidos.valorprod, detpedidos.descuento, detpedidos.porcdesc, pedidos.fecha, terceros.nombres, terceros.apellidos, detpedidos.cantidad
-            FROM
-            detpedidos
-            LEFT JOIN productos ON detpedidos.idproducto = productos.idproducto
-            LEFT JOIN pedidos ON detpedidos.idpedido= pedidos.idpedido
-            LEFT JOIN terceros ON pedidos.idtercero = terceros.idtercero
-            WHERE
-            numero= ${numero} AND pedidos.idalmacen = ${idAlm};`)
+            p.numero, p.valimpuesto, p.subtotal, p.valdescuentos, p.valortotal, prod.descripcion, dtp.valorprod, dtp.descuento, dtp.porcdesc, p.fecha, p.hora, t.nombres, t.nit, t.apellidos, dtp.cantidad, alm.nomalmacen
+          FROM
+            detpedidos dtp
+            LEFT JOIN productos prod ON dtp.idproducto = prod.idproducto
+            LEFT JOIN pedidos p ON dtp.idpedido = p.idpedido
+            LEFT JOIN terceros t ON p.idtercero = t.idtercero
+            LEFT JOIN almacenes alm ON p.idalmacen = alm.idalmacen
+          WHERE
+            numero= ${numero} AND p.idalmacen = ${idAlm};`)
             return res.status(200).json(response[0])
 
         } catch (error) {
