@@ -37,9 +37,26 @@ export class InventoryMovements {
 
         try {
             const conn = await connect();
-            const thirdParties = await conn.query(`SELECT idtercero, nit, nombres FROM terceros `
+            const limit = Number(req.query.limit) || 10;
+            const page = Number(req.query.page) || 1;
+            const offset = (page - 1) * limit;
+            const nombres = req.query.nombres || '';
+            const nit = req.query.nit || '';
+            const thirdParties = await conn.query(`SELECT idtercero, nit, nombres FROM terceros 
+            WHERE (nombres LIKE '%${nombres}%')
+            AND (nit LIKE '%${nit}%')
+          ORDER BY
+            idtercero
+          LIMIT
+          ${limit} OFFSET ${offset}  `
             )
-            return res.status(200).json(thirdParties[0])
+            const totalItems = thirdParties.length;
+            const totalPages = Math.ceil(totalItems / limit);
+            return res.status(200).json({
+                third: thirdParties[0],
+                page: page, offset, limit,
+                totalPages: totalPages
+            })
 
         } catch (error) {
             return res.status(500).json({ message: error })

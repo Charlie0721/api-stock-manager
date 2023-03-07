@@ -2,12 +2,8 @@ import { Request, Response } from 'express';
 import { connect } from '../database';
 import { ItradeOrderHeader } from '../interface/tradeOrder.interface'
 import { IcreateClient } from '../interface/createClient.interface'
-import Redis from 'ioredis';
 
-const redis = new Redis({
-    host: 'localhost',
-    port: 6379,
-});
+
 
 export class TradeOrder {
 
@@ -39,7 +35,7 @@ export class TradeOrder {
     /**Obtener productos activos */
 
     static getProducts = async (req: Request, res: Response) => {
-            
+
         try {
 
             const conn = await connect();
@@ -104,13 +100,29 @@ export class TradeOrder {
         try {
 
             const conn = await connect();
+            const limit = Number(req.query.limit) || 10;
+            const page = Number(req.query.page) || 1;
+            const offset = (page - 1) * limit;
+            const nombres = req.query.nombres || '';
+            const nit = req.query.nit || '';
             const customer = await conn.query(`SELECT
             idtercero, nombres, nit
           FROM
             terceros
           WHERE
-            cliente=1;`)
-            return res.status(200).json({ customer: customer[0] })
+            cliente=1  AND (nombres LIKE '%${nombres}%')
+            AND (nit LIKE '%${nit}%')
+          ORDER BY
+            idtercero
+          LIMIT
+          ${limit} OFFSET ${offset} `)
+            const totalItems = customer.length;
+            const totalPages = Math.ceil(totalItems / limit);
+            return res.status(200).json({
+                customer: customer[0],
+                page: page, offset, limit,
+                totalPages: totalPages
+            })
 
         } catch (error) {
             console.log(error);
@@ -181,7 +193,7 @@ export class TradeOrder {
         }
     }
 
-     /*obtener el id del ultimo pedido insertado*/
+    /*obtener el id del ultimo pedido insertado*/
     static getIdTradeOrder = async (req: Request, res: Response): Promise<Response> => {
         try {
             const conn = await connect();
