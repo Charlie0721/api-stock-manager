@@ -207,7 +207,7 @@ export class TradeOrder {
             const numero = req.params.numero;
             const idAlm = req.params.idalmacen;
             const response = await conn.query(`SELECT
-            p.numero, p.valimpuesto, p.subtotal, p.valdescuentos, p.valortotal, prod.descripcion, dtp.valorprod, dtp.descuento, dtp.porcdesc, p.fecha, p.hora, t.nombres, t.nit, t.apellidos, dtp.cantidad, alm.nomalmacen
+            p.numero, prod.idproducto, p.valimpuesto, p.subtotal, p.valdescuentos, p.valortotal, prod.descripcion, dtp.valorprod, dtp.descuento, dtp.porcdesc, p.fecha, p.hora, t.nombres, t.nit, t.apellidos, dtp.cantidad, alm.nomalmacen
           FROM
             detpedidos dtp
             LEFT JOIN productos prod ON dtp.idproducto = prod.idproducto
