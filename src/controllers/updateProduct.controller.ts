@@ -48,14 +48,38 @@ export const addMultipleBarcodes = async (req: Request, res: Response) => {
     try {
 
         const conn = await connect();
-        const id:string = req.params.idproducto;
-        const barcode:IAddBarcodes  = req.body;
-        const addBarcodes = await conn.query(`INSERT into barrasprod (idproducto, barcode) 
-        VALUES (?,?)`, [id, barcode.barcode])
-        return res.status(200).json({
-            message: 'barcode added',
-            addBarcodes
-        })
+        const id: string = req.params.idproducto;
+        const barcode: IAddBarcodes = req.body;
+
+        const [rows] = await conn.query(`SELECT
+        p.descripcion, p.precioventa,  p.idproducto, barr.barcode, p.barcode
+    FROM
+       productos p
+       LEFT JOIN 
+       barrasprod barr ON p.idproducto = barr.idproducto
+    WHERE
+    p.barcode=${barcode.barcode} OR barr.barcode=${barcode.barcode}
+    GROUP BY
+    p.idproducto`)
+        //@ts-ignore
+        if (rows.length <= 0) {
+
+            const addBarcodes = await conn.query(`INSERT into barrasprod (idproducto, barcode) 
+                VALUES (?,?)`, [id, barcode.barcode])
+            return res.status(200).json({
+                message: 'barcode added',
+                addBarcodes
+            })
+
+        } else {
+            return res.json({
+                message: 'barcode found',
+                barcode: rows
+
+            })
+        }
+
+
 
     } catch (error) {
 
