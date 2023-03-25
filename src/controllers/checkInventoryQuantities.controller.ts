@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
-import Redis from 'ioredis';
 
 
 

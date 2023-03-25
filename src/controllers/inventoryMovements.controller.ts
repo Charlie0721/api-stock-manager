@@ -1,11 +1,6 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
 import { IIngMovInvEntrada } from '../interface/movementInventory.interface';
-import Redis from 'ioredis';
-const redis = new Redis({
-    host: 'localhost',
-    port: 6379,
-});
 
 export class InventoryMovements {
 

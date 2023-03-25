@@ -2,12 +2,6 @@ import { Request, Response } from 'express'
 import { connect } from '../database'
 import { IHeaderPurchases } from '../interface/recordPurchases.interface'
 
-import Redis from 'ioredis';
-
-const redis = new Redis({
-    host: 'localhost',
-    port: 6379,
-});
 
 
 export class ChargePurchases {
