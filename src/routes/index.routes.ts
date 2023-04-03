@@ -10,6 +10,7 @@ import {TradeOrder} from '../controllers/tradeOrder.controller'
 import {DataCollector} from '../controllers/dataRecolector.controller'
 import {ControlTime} from '../controllers/control_time'
 import{TransfersToCxPos} from '../controllers/transfers_in_app'
+import {ProductClass} from '../controllers/createProducts.controller'
 const router = Router();
 router.route('/search-prices').post(SearchPrices)
 router.route('/all-products').get(Product.allProducts)
@@ -50,4 +51,7 @@ router.post('/transfers/send-transfer-origin',TransfersToCxPos.sendTransfer)
 router.get('/transfers/warehouses',TransfersToCxPos.getWarehousestoTransfer)
 router.get('/transfers/products/:idalmacen',TransfersToCxPos.getProducts)
 router.get('/transfers/get-id',TransfersToCxPos.getIdTransfer)
+router.get('/products-levels',ProductClass.getProductsLevels)
+router.post('/products-levels',ProductClass.saveProduct)
+
 export default router;
