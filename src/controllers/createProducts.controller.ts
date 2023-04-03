@@ -63,7 +63,7 @@ export class ProductClass {
                 console.log(result[2]);
 
                 product.estproductos.forEach(async (item) => {
-                    result[2] = item.idproducto ++
+                    result[2] = item.idproducto 
                                      
                     await conn.query(`INSERT INTO estproductos (idproducto, idregistro, idnivel)
                     values (?,?,?)`, [result[2], item.idregistro, item.idnivel])
