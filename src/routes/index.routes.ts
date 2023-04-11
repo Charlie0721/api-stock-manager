@@ -52,6 +52,12 @@ router.get('/transfers/warehouses',TransfersToCxPos.getWarehousestoTransfer)
 router.get('/transfers/products/:idalmacen',TransfersToCxPos.getProducts)
 router.get('/transfers/get-id',TransfersToCxPos.getIdTransfer)
 router.get('/products-levels',ProductClass.getProductsLevels)
-router.post('/products-levels',ProductClass.saveProduct)
+router.get('/products-tax-shopping',ProductClass.getTaxShopping)
+router.get('/products-tax-sales',ProductClass.getTaxSales)
+router.get('/products-unit-of-measure',ProductClass.getUnitsOfMeasure)
+router.post('/products-create-product',ProductClass.saveProduct)
+router.get('/products-structure',ProductClass.getStructure)
+router.get('/products-get-code',ProductClass.getCode)
+router.get('/products-get-productid',ProductClass.getIdProduct)
 
 export default router;

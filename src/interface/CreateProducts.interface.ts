@@ -9,11 +9,12 @@ export interface ProductsI {
     codivaesp1?: string;
     codivaesp2?: string;
     costo: number;
+    ultcosto:number;
     precioventa: number;
     estado: number;
     compuesto: number;
     idareaserv?: number;
-    codivacomp?: string;
+    codivacomp: string;
     agruparalfacturar?: number;
     estproductos: ProductStructureI[];    
 
