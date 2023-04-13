@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
 import { ProductStructureI, ProductsI } from '../interface/CreateProducts.interface'
+import { IAddBarcodes } from '../interface/barcode.interface';
 
 export class ProductClass {
 
@@ -192,6 +193,36 @@ export class ProductClass {
 
     }
 
+
+
+    static searchExistingBarcode = async (req: Request, res: Response) => {
+        const conn = await connect();
+
+        const barcode = req.query.barcode || '';
+        const [rows] = await conn.query(`SELECT
+        p.descripcion, p.precioventa,  p.idproducto, barr.barcode, p.barcode
+    FROM
+       productos p
+       LEFT JOIN 
+       barrasprod barr ON p.idproducto = barr.idproducto
+    WHERE
+    p.barcode=${barcode} OR barr.barcode=${barcode}
+    GROUP BY
+    p.idproducto`)
+        //@ts-ignore
+        if (rows.length <= 0) {
+            return res.status(200).json({
+                message: 'barcode not found',
+            })
+
+        } else {
+            return res.status(200).json({
+                message: 'barcode found',
+                barcode: rows
+            })
+        }
+
+    }
     /**
    * Crear el producto
    */
@@ -201,23 +232,24 @@ export class ProductClass {
             const pool = await connect();
             const conn = await pool.getConnection();
             try {
+
                 await conn.query(`START TRANSACTION`);
                 const product: ProductsI = req.body;
+
+
                 const [newProductResponse] = await conn.query(`INSERT INTO productos 
-                (codigo,barcode,descripcion,idunmedida,codiva, tipo,codivaesp1,codivaesp2,costo, ultcosto, precioventa,
-                estado,compuesto,idareaserv,codivacomp,agruparalfacturar) 
-                values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [product.codigo, product.barcode, product.descripcion, product.idunmedida,
+                    (codigo,barcode,descripcion,idunmedida,codiva, tipo,codivaesp1,codivaesp2,costo, ultcosto, precioventa,
+                    estado,compuesto,idareaserv,codivacomp,agruparalfacturar) 
+                    values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [product.codigo, product.barcode, product.descripcion, product.idunmedida,
                 product.codiva, product.tipo, product.codivaesp1, product.codivaesp2, product.costo, product.ultcosto, product.precioventa, product.estado,
                 product.compuesto, product.idareaserv, product.codivacomp, product.agruparalfacturar])
 
                 const result = Object.values(JSON.parse(JSON.stringify(newProductResponse)));
-                console.log(result[2]);
-
                 product.estproductos.forEach(async (item) => {
                     result[2] = item.idproducto
 
                     await conn.query(`INSERT INTO estproductos (idproducto, idregistro, idnivel)
-                    values (?,?,?)`, [result[2], item.idregistro, item.idnivel])
+                        values (?,?,?)`, [result[2], item.idregistro, item.idnivel])
                 })
                 await conn.query(`COMMIT`);
 

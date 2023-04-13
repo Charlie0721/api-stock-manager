@@ -59,5 +59,5 @@ router.post('/products-create-product',ProductClass.saveProduct)
 router.get('/products-structure',ProductClass.getStructure)
 router.get('/products-get-code',ProductClass.getCode)
 router.get('/products-get-productid',ProductClass.getIdProduct)
-
+router.get('/products-search-product-by-barcode',ProductClass.searchExistingBarcode)
 export default router;
