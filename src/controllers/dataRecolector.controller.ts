@@ -77,7 +77,7 @@ export class DataCollector {
             const finalDataParsed = JSON.parse(finalDataCollector);
             finalDataParsed.forEach((collector: any) => {
                 barcode.push(
-                    collector.warehouse1 + collector.coma + collector.warehouse2 + collector.coma1 + collector.barcode + collector.coma2 + collector.amount + "\n"
+                    collector.SelectOrigin + collector.coma + collector.SelectDestination + collector.coma1 + collector.barcode + collector.coma2 + collector.amount + "\n"
                 );
             });
             const dataToFileText = barcode.join("")
