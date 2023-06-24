@@ -11,6 +11,7 @@ import {DataCollector} from '../controllers/dataRecolector.controller'
 import {ControlTime} from '../controllers/control_time'
 import{TransfersToCxPos} from '../controllers/transfers_in_app'
 import {ProductClass} from '../controllers/createProducts.controller'
+import {CheckSalesOfTheDay} from '../controllers/SalesOfTheDay'
 const router = Router();
 router.route('/search-prices').post(SearchPrices)
 router.route('/all-products').get(Product.allProducts)
@@ -60,4 +61,5 @@ router.get('/products-structure',ProductClass.getStructure)
 router.get('/products-get-code',ProductClass.getCode)
 router.get('/products-get-productid',ProductClass.getIdProduct)
 router.get('/products-search-product-by-barcode',ProductClass.searchExistingBarcode)
+router.post('/sales/search-sales-by-day',CheckSalesOfTheDay.checkSales)
 export default router;
