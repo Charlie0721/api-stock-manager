@@ -1,14 +1,17 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
 
+interface IsearchSales{
+    initialDate: string; 
+ }
+
 export class CheckSalesOfTheDay {
 
     static checkSales = async (req: Request, res: Response) => {
 
         try {
             const conn = await connect();
-            let consultationDate: string = req.body.initialDate;
-            console.log(consultationDate)
+            const consultationDate: IsearchSales = req.body.initialDate;
             const [rows] = await conn.query(`SELECT   a.fecha, a.idalmacen, a.prodvendid, e.subtot, e.ivaimp, a.costoacum, e.sumdesc, e.total, e.retencion, e.cantfact, f.valordev, e.valpropina, e.total + IF(ISNULL(e.valpropina), 0, e.valpropina) AS totalconprop, almd.nomalmacen, e.otrosimpuestos, e.impuestoinc
             FROM (SELECT a.idalmacen, a.fecha, SUM(a.valortotal) AS total, COUNT(a.idfactura) AS cantfact, SUM(a.valretenciones) AS retencion, SUM(a.valimpuesto) AS ivaimp, SUM(a.subtotal) AS subtot, SUM(a.valdescuentos) AS sumdesc, SUM(b.propina) AS valpropina, SUM(a.otrosimpuestos) otrosimpuestos, SUM(a.impuestoinc) impuestoinc
             FROM facturas a
