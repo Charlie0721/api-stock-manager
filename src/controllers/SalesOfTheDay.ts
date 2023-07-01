@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
 
-interface IsearchSales{
-    initialDate: string; 
- }
+interface IsearchSales {
+    initialDate: string;
+}
 
 export class CheckSalesOfTheDay {
 
@@ -47,13 +47,45 @@ export class CheckSalesOfTheDay {
             }
             return res.status(200).json({
                 message: "Facturas encontradas",
-                sales:rows,
-              
+                sales: rows,
+
             })
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error })
         }
+    }
+
+    static getSalesByWarehouse = async (req: Request, res: Response) => {
+
+        try {
+            const conn = await connect();
+            let date: string = req.params.fecha;
+            let warehouseId: string = req.params.idalmacen
+          
+            const [responseSales] = await conn.query(`SELECT idfactura, numero, fecha, subtotal, valimpuesto, valortotal, valdescuentos, hora, almacenes.idalmacen, almacenes.nomalmacen,  estado 
+            FROM facturas
+            INNER JOIN 
+            almacenes ON facturas.idalmacen = almacenes.idalmacen
+            WHERE
+            fecha =${date} AND almacenes.idalmacen=${warehouseId}
+            `)
+            //@ts-ignore
+            if (responseSales.length <= 0) {
+                return res.status(401).json({
+                    message: `No se encontraron facturas con la fecha ${date}`
+                })
+            }
+            return res.status(200).json({
+                message: "Facturas encontradas",
+                sales: responseSales,
+            })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ error })
+        }
+
+
     }
 
 }

@@ -1,17 +1,17 @@
-import {Router}  from 'express'
+import { Router } from 'express'
 import { InventoryMovements } from '../controllers/inventoryMovements.controller';
 import { SearchPrices } from '../controllers/searchDate.controller';
 import { Product } from '../controllers/todosProductos.controller';
-import {UpdateProduct, getProductById,addMultipleBarcodes } from '../controllers/updateProduct.controller';
-import {ChargePurchases} from '../controllers/recordPurchases.controller'
-import {inventoryQuantities} from '../controllers/checkInventoryQuantities.controller'
+import { UpdateProduct, getProductById, addMultipleBarcodes } from '../controllers/updateProduct.controller';
+import { ChargePurchases } from '../controllers/recordPurchases.controller'
+import { inventoryQuantities } from '../controllers/checkInventoryQuantities.controller'
 import { connectToApi } from '../controllers/setUrlToAPi.controller';
-import {TradeOrder} from '../controllers/tradeOrder.controller'
-import {DataCollector} from '../controllers/dataRecolector.controller'
-import {ControlTime} from '../controllers/control_time'
-import{TransfersToCxPos} from '../controllers/transfers_in_app'
-import {ProductClass} from '../controllers/createProducts.controller'
-import {CheckSalesOfTheDay} from '../controllers/SalesOfTheDay'
+import { TradeOrder } from '../controllers/tradeOrder.controller'
+import { DataCollector } from '../controllers/dataRecolector.controller'
+import { ControlTime } from '../controllers/control_time'
+import { TransfersToCxPos } from '../controllers/transfers_in_app'
+import { ProductClass } from '../controllers/createProducts.controller'
+import { CheckSalesOfTheDay } from '../controllers/SalesOfTheDay'
 const router = Router();
 router.route('/search-prices').post(SearchPrices)
 router.route('/all-products').get(Product.allProducts)
@@ -47,19 +47,20 @@ router.route('/data-collector/create-file').post(DataCollector.createTextFile)
 router.route('/data-collector/transfers').get(DataCollector.searchWarehousesActive)
 router.route('/data-collector/transfers').post(DataCollector.createTextFileTransfers)
 router.route('/control-time').get(ControlTime.controlTime)
-router.get('/transfers/number-transfer-origin',TransfersToCxPos.getNumberTransfers)
-router.post('/transfers/send-transfer-origin',TransfersToCxPos.sendTransfer)
-router.get('/transfers/warehouses',TransfersToCxPos.getWarehousestoTransfer)
-router.get('/transfers/products/:idalmacen',TransfersToCxPos.getProducts)
-router.get('/transfers/get-id',TransfersToCxPos.getIdTransfer)
-router.get('/products-levels',ProductClass.getProductsLevels)
-router.get('/products-tax-shopping',ProductClass.getTaxShopping)
-router.get('/products-tax-sales',ProductClass.getTaxSales)
-router.get('/products-unit-of-measure',ProductClass.getUnitsOfMeasure)
-router.post('/products-create-product',ProductClass.saveProduct)
-router.get('/products-structure',ProductClass.getStructure)
-router.get('/products-get-code',ProductClass.getCode)
-router.get('/products-get-productid',ProductClass.getIdProduct)
-router.get('/products-search-product-by-barcode',ProductClass.searchExistingBarcode)
-router.post('/sales/search-sales-by-day',CheckSalesOfTheDay.checkSales)
+router.get('/transfers/number-transfer-origin', TransfersToCxPos.getNumberTransfers)
+router.post('/transfers/send-transfer-origin', TransfersToCxPos.sendTransfer)
+router.get('/transfers/warehouses', TransfersToCxPos.getWarehousestoTransfer)
+router.get('/transfers/products/:idalmacen', TransfersToCxPos.getProducts)
+router.get('/transfers/get-id', TransfersToCxPos.getIdTransfer)
+router.get('/products-levels', ProductClass.getProductsLevels)
+router.get('/products-tax-shopping', ProductClass.getTaxShopping)
+router.get('/products-tax-sales', ProductClass.getTaxSales)
+router.get('/products-unit-of-measure', ProductClass.getUnitsOfMeasure)
+router.post('/products-create-product', ProductClass.saveProduct)
+router.get('/products-structure', ProductClass.getStructure)
+router.get('/products-get-code', ProductClass.getCode)
+router.get('/products-get-productid', ProductClass.getIdProduct)
+router.get('/products-search-product-by-barcode', ProductClass.searchExistingBarcode)
+router.post('/sales/search-sales-by-day', CheckSalesOfTheDay.checkSales)
+router.get('/sales/search-sales-by-day/:fecha/:idalmacen', CheckSalesOfTheDay.getSalesByWarehouse)
 export default router;
