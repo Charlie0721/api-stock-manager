@@ -63,4 +63,5 @@ router.get('/products-get-productid', ProductClass.getIdProduct)
 router.get('/products-search-product-by-barcode', ProductClass.searchExistingBarcode)
 router.post('/sales/search-sales-by-day', CheckSalesOfTheDay.checkSales)
 router.get('/sales/search-sales-by-day/:fecha/:idalmacen', CheckSalesOfTheDay.getSalesByWarehouse)
+router.get('/sales/search-sales-by-day/detail/:idalmacen/:numero', CheckSalesOfTheDay.detailOfSalesOfTheDay)
 export default router;

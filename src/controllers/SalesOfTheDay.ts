@@ -62,7 +62,7 @@ export class CheckSalesOfTheDay {
             const conn = await connect();
             let date: string = req.params.fecha;
             let warehouseId: string = req.params.idalmacen
-          
+
             const [responseSales] = await conn.query(`SELECT idfactura, numero, fecha, subtotal, valimpuesto, valortotal, valdescuentos, hora, almacenes.idalmacen, almacenes.nomalmacen,  estado 
             FROM facturas
             INNER JOIN 
@@ -80,6 +80,45 @@ export class CheckSalesOfTheDay {
                 message: "Facturas encontradas",
                 sales: responseSales,
             })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ error })
+        }
+
+
+    }
+
+    static detailOfSalesOfTheDay = async (req: Request, res: Response) => {
+
+        try {
+            const conn = await connect();
+            const number = req.params.numero;
+            const warehouseId = req.params.idalmacen;
+
+            const responseSalesOfDay:any= await conn.query(`
+            SELECT
+            f.numero, f.valimpuesto, f.subtotal, f.valdescuentos, f.valortotal, p.descripcion, detf.valorprod, detf.descuento, detf.porcdesc, f.fecha, t.nombres, t.apellidos, detf.cantidad, f.idalmacen, (p.ultcosto * detf.cantidad) AS total_costo
+            FROM
+            detfacturas detf
+            JOIN productos p ON detf.idproducto = p.idproducto
+            JOIN facturas f ON detf.idfactura = f.idfactura
+            JOIN terceros t ON f.idtercero = t.idtercero
+            WHERE
+            f.idalmacen = ${warehouseId} AND numero = ${number}
+            `)
+            //@ts-ignore
+            if (responseSalesOfDay.length <= 0) {
+                return res.status(401).json({
+                    message: `No se encontraron facturas con en número ${number}`
+                })
+            }
+            return res.status(200).json({
+                message: "Factura encontrada",
+                sales: responseSalesOfDay[0],
+                detailSale:responseSalesOfDay[0][1]
+            })
+
+
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error })
