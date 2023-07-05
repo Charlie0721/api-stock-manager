@@ -16,7 +16,7 @@ export class ChargePurchases {
         try {
 
             const conn = await connect();
-            const limit = Number(req.query.limit) || 10;
+            const limit = Number(req.query.limit) || 2;
             const page = Number(req.query.page) || 1;
             const offset = (page - 1) * limit;
             const descripcion = req.query.descripcion || '';

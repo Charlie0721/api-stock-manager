@@ -118,7 +118,6 @@ export class CheckSalesOfTheDay {
                 detailSale:responseSalesOfDay[0][1]
             })
 
-
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error })
