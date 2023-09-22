@@ -49,8 +49,8 @@ export class TradeOrder {
             const products = await conn.query(`SELECT
             p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen
           FROM
-            inventario i
-            INNER JOIN productos p ON i.idproducto = p.idproducto
+            productos p
+            INNER JOIN inventario i ON p.idproducto = i.idproducto
             INNER JOIN almacenes alm ON i.idalmacen = alm.idalmacen
           WHERE
             i.idalmacen = ${idalmacen} AND p.estado = 1
@@ -123,6 +123,7 @@ export class TradeOrder {
                 page: page, offset, limit,
                 totalPages: totalPages
             })
+            
 
         } catch (error) {
             console.log(error);
