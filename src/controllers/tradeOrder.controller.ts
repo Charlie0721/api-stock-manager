@@ -172,13 +172,10 @@ export class TradeOrder {
                         destructuringInsertId = item.idpedido
                         await conn.query(`INSERT INTO detpedidos (idpedido,idproducto,cantidad,valorprod,descuento,codiva,porciva,costoprod,despachado)
                                VALUES (?,?,?,?,?,?,?,?,?)`, [destructuringInsertId, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.codiva, item.porciva, item.costoprod, item.despachado]);
-                    })
-
-
+                                    })
                 } else {
                     return res.status(400).json({ message: "id not found !!!" })
                 }
-
                 await conn.query(`COMMIT`);
                 if (responseOrder)
                     return res.status(200).json({ id: destructuringInsertId, responseOrder, ...newOrder, });
