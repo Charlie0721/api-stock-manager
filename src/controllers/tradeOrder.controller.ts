@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { connect } from '../database';
 import { ItradeOrderHeader } from '../interface/tradeOrder.interface'
 import { IcreateClient } from '../interface/createClient.interface'
+import { RowDataPacket } from 'mysql2';
 
 
 
@@ -46,12 +47,13 @@ export class TradeOrder {
             const descripcion = req.query.descripcion || '';
             const barcode = req.query.barcode || '';
 
-            const products = await conn.query(`SELECT
-            p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen
+            const [products] = await conn.query<RowDataPacket[]>(`SELECT
+            p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen,iv.porcentaje
           FROM
             productos p
-            INNER JOIN inventario i ON p.idproducto = i.idproducto
-            INNER JOIN almacenes alm ON i.idalmacen = alm.idalmacen
+            LEFT JOIN inventario i ON p.idproducto = i.idproducto
+            LEFT JOIN almacenes alm ON i.idalmacen = alm.idalmacen
+            LEFT JOIN iva iv ON p.codiva = iv.codiva
           WHERE
             i.idalmacen = ${idalmacen} AND p.estado = 1
             AND (p.descripcion LIKE '%${descripcion}%')
@@ -61,21 +63,33 @@ export class TradeOrder {
           LIMIT
           ${limit} OFFSET ${offset} 
           `);
+            const newProducts = products.map((product: any) => {
+                let baseValue = product.precioventa;
+                let taxValue = 0;
+                if (product.porcentaje !== 0) {
+                    let porciva = 1 + (product.porcentaje / 100);
+                    baseValue = product.precioventa / porciva;
+                    taxValue = product.precioventa - baseValue;
+                }
+                return {
+                    ...product,
+                    baseValue,
+                    taxValue,
+                }
+
+            })
             const totalItems = products.length;
             const totalPages = Math.ceil(totalItems / limit);
+
             return res.json({
-                products: products[0],
+                newProducts,
                 page: page, offset, limit,
                 totalPages: totalPages
             });
-
-
-
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
         }
-
     }
 
     /**Obtener los almacenes  */
@@ -123,7 +137,7 @@ export class TradeOrder {
                 page: page, offset, limit,
                 totalPages: totalPages
             })
-            
+
 
         } catch (error) {
             console.log(error);
@@ -172,8 +186,8 @@ export class TradeOrder {
                     newOrder.detpedidos.forEach(async (item) => {
                         destructuringInsertId = item.idpedido
                         await conn.query(`INSERT INTO detpedidos (idpedido,idproducto,cantidad,valorprod,descuento,codiva,porciva,costoprod,despachado)
-                               VALUES (?,?,?,?,?,?,?,?,?)`, [destructuringInsertId, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.codiva, item.porciva, item.costoprod, item.despachado]);
-                                    })
+                               VALUES (?,?,?,?,?,?,?,?,?)`, [destructuringInsertId, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.codiva, item.porciva, item.costoprod, item.despachado, item.base, item.ivaprod]);
+                    })
                 } else {
                     return res.status(400).json({ message: "id not found !!!" })
                 }

@@ -18,7 +18,7 @@
     "express": "^4.17.3",
     "moment": "^2.29.4",
     "morgan": "^1.10.0",
-    "mysql2": "^2.3.3",
+    "mysql2": "^3.6.1",
     "response-time": "^2.3.2"
   },
   "devDependencies": {

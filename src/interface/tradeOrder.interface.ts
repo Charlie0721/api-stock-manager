@@ -30,6 +30,7 @@ export interface ItradeOrderDetail {
     porciva?: number;
     costoprod: number;
     despachado: number;
-
+    base:number;
+    ivaprod: number;
 
 }
