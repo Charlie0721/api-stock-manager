@@ -180,7 +180,7 @@ export class TradeOrder {
                 const result = Object.values(JSON.parse(JSON.stringify(responseOrder)));
                 const insertId = await conn.query(`SELECT LAST_INSERT_ID();`)
                 let destructuringInsertId = JSON.stringify(insertId[0])
-
+                
                 if (destructuringInsertId) {
 
                     newOrder.detpedidos.forEach(async (item) => {
