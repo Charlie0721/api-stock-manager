@@ -6,6 +6,7 @@ export interface ItradeOrderHeader {
     idvendedor: number;
     subtotal: number;
     valortotal: number;
+    valimpuesto:number;
     valdescuentos: number;
     valretenciones: number;
     idalmacen: number;

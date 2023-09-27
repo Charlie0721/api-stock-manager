@@ -175,8 +175,8 @@ export class TradeOrder {
                 await conn.query(`START TRANSACTION`);
                 const newOrder: ItradeOrderHeader = req.body;
 
-                const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,idvendedor,subtotal,valortotal,valdescuentos,valretenciones,detalle,fechacrea,hora,plazo,idalmacen,estado,idsoftware)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle, newOrder.fechacrea, newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware]);
+                const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,idvendedor,subtotal,valortotal,valdescuentos,valimpuesto,valretenciones,detalle,fechacrea,hora,plazo,idalmacen,estado,idsoftware)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal, newOrder.valimpuesto, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle, newOrder.fechacrea, newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware]);
                 const result = Object.values(JSON.parse(JSON.stringify(responseOrder)));
                 const insertId = await conn.query(`SELECT LAST_INSERT_ID();`)
                 let destructuringInsertId = JSON.stringify(insertId[0])
@@ -185,8 +185,8 @@ export class TradeOrder {
 
                     newOrder.detpedidos.forEach(async (item) => {
                         destructuringInsertId = item.idpedido
-                        await conn.query(`INSERT INTO detpedidos (idpedido,idproducto,cantidad,valorprod,descuento,codiva,porciva,costoprod,despachado)
-                               VALUES (?,?,?,?,?,?,?,?,?)`, [destructuringInsertId, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.codiva, item.porciva, item.costoprod, item.despachado, item.base, item.ivaprod]);
+                        await conn.query(`INSERT INTO detpedidos (idpedido,idproducto,cantidad,valorprod,descuento,codiva,porciva,ivaprod,costoprod,base,despachado)
+                               VALUES (?,?,?,?,?,?,?,?,?,?,?)`, [destructuringInsertId, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.codiva, item.porciva, item.ivaprod, item.costoprod, item.base, item.despachado]);
                     })
                 } else {
                     return res.status(400).json({ message: "id not found !!!" })
