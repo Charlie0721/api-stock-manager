@@ -48,7 +48,7 @@ export class TradeOrder {
             const barcode = req.query.barcode || '';
 
             const [products] = await conn.query<RowDataPacket[]>(`SELECT
-            p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen,iv.porcentaje
+            p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.precioespecial1, p.precioespecial2, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen,iv.porcentaje
           FROM
             productos p
             LEFT JOIN inventario i ON p.idproducto = i.idproducto
