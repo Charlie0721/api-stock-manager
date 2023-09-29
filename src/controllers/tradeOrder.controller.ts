@@ -174,8 +174,8 @@ export class TradeOrder {
                 await conn.query(`START TRANSACTION`);
                 const newOrder: ItradeOrderHeader = req.body;
 
-                const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,idvendedor,subtotal,valortotal,valdescuentos,valimpuesto,valretenciones,detalle,fechacrea,hora,plazo,idalmacen,estado,idsoftware)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal, newOrder.valimpuesto, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle, newOrder.fechacrea, newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware]);
+                const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,idvendedor,subtotal,valortotal,valimpuesto,valiva,valdescuentos,valretenciones,detalle,fechacrea,hora,plazo,idalmacen,estado,idsoftware)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal, newOrder.valimpuesto, newOrder.valiva, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle, newOrder.fechacrea, newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware]);
                 const result = Object.values(JSON.parse(JSON.stringify(responseOrder)));
                 const insertId = await conn.query(`SELECT LAST_INSERT_ID();`)
                 let destructuringInsertId = JSON.stringify(insertId[0])

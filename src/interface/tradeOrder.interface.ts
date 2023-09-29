@@ -9,6 +9,7 @@ export interface ItradeOrderHeader {
     valimpuesto:number;
     valdescuentos: number;
     valretenciones: number;
+    valiva: number;
     idalmacen: number;
     estado: number;
     detalle?: string;
