@@ -12,6 +12,7 @@ import { ControlTime } from '../controllers/control_time'
 import { TransfersToCxPos } from '../controllers/transfers_in_app'
 import { ProductClass } from '../controllers/createProducts.controller'
 import { CheckSalesOfTheDay } from '../controllers/SalesOfTheDay'
+import {UsersController} from '../controllers/users.controller'
 const router = Router();
 router.route('/search-prices').post(SearchPrices)
 router.route('/all-products').get(Product.allProducts)
@@ -64,4 +65,5 @@ router.get('/products-search-product-by-barcode', ProductClass.searchExistingBar
 router.post('/sales/search-sales-by-day', CheckSalesOfTheDay.checkSales)
 router.get('/sales/search-sales-by-day/:fecha/:idalmacen', CheckSalesOfTheDay.getSalesByWarehouse)
 router.get('/sales/search-sales-by-day/detail/:idalmacen/:numero', CheckSalesOfTheDay.detailOfSalesOfTheDay)
+router.post('/users/signin', UsersController.saveUser)
 export default router;

@@ -4,7 +4,6 @@ import { connect } from '../database'
 
 export class Product {
 
-
     static allProducts = async (req: Request, res: Response) => {
 
 
