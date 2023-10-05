@@ -66,4 +66,5 @@ router.post('/sales/search-sales-by-day', CheckSalesOfTheDay.checkSales)
 router.get('/sales/search-sales-by-day/:fecha/:idalmacen', CheckSalesOfTheDay.getSalesByWarehouse)
 router.get('/sales/search-sales-by-day/detail/:idalmacen/:numero', CheckSalesOfTheDay.detailOfSalesOfTheDay)
 router.post('/users/signin', UsersController.saveUser)
+router.post('/users/login', UsersController.loginUSer)
 export default router;
