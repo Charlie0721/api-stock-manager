@@ -28,6 +28,7 @@ export interface ItradeOrderDetail {
     cantidad: number;
     valorprod: number;
     descuento: number;
+    porcdesc:number;
     codiva: string;
     porciva?: number;
     costoprod: number;
