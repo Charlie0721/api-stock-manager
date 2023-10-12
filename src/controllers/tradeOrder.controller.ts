@@ -3,9 +3,6 @@ import { connect } from '../database';
 import { ItradeOrderHeader } from '../interface/tradeOrder.interface'
 import { IcreateClient } from '../interface/createClient.interface'
 import { RowDataPacket } from 'mysql2';
-import { log } from 'console';
-
-
 
 export class TradeOrder {
 
@@ -105,11 +102,9 @@ export class TradeOrder {
             console.log(error)
             return res.status(500).json({ error: error })
         }
-
     }
 
     /**obtener clientes */
-
     static getCustomer = async (req: Request, res: Response): Promise<Response> => {
 
         try {
@@ -137,8 +132,6 @@ export class TradeOrder {
                 page: page, offset, limit,
                 totalPages: totalPages
             })
-
-
         } catch (error) {
             console.log(error);
             return res.status(404).json({ error: error })
@@ -146,7 +139,6 @@ export class TradeOrder {
     }
     /**obtener empleados (vendedores) */
     static getEmployee = async (req: Request, res: Response): Promise<Response> => {
-
         try {
             const conn = await connect();
             const employee = await conn.query(`SELECT
@@ -161,16 +153,13 @@ export class TradeOrder {
             console.log(error);
             return res.status(404).json({ error: error })
         }
-
     }
 
     /**Insertar la orden y el detalle */
     static insertOrder = async (req: Request, res: Response) => {
-
         try {
             const pool = await connect();
             const conn = await pool.getConnection();
-
             try {
                 await conn.query(`START TRANSACTION`);
                 const newOrder: ItradeOrderHeader = req.body;
