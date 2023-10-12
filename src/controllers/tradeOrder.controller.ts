@@ -3,6 +3,7 @@ import { connect } from '../database';
 import { ItradeOrderHeader } from '../interface/tradeOrder.interface'
 import { IcreateClient } from '../interface/createClient.interface'
 import { RowDataPacket } from 'mysql2';
+import { log } from 'console';
 
 
 
@@ -179,13 +180,13 @@ export class TradeOrder {
                 const result = Object.values(JSON.parse(JSON.stringify(responseOrder)));
                 const insertId = await conn.query(`SELECT LAST_INSERT_ID();`)
                 let destructuringInsertId = JSON.stringify(insertId[0])
-                
+
                 if (destructuringInsertId) {
 
                     newOrder.detpedidos.forEach(async (item) => {
                         destructuringInsertId = item.idpedido
                         await conn.query(`INSERT INTO detpedidos (idpedido,idproducto,cantidad,valorprod,descuento,porcdesc,codiva,porciva,ivaprod,costoprod,base,despachado)
-                               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`, [destructuringInsertId, item.idproducto, item.cantidad, item.valorprod, item.descuento,item.porcdesc, item.codiva, item.porciva, item.ivaprod, item.costoprod, item.base, item.despachado]);
+                               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`, [destructuringInsertId, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.porcdesc, item.codiva, item.porciva, item.ivaprod, item.costoprod, item.base, item.despachado]);
                     })
                 } else {
                     return res.status(400).json({ message: "id not found !!!" })
