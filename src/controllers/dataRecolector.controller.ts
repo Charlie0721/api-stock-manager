@@ -113,7 +113,7 @@ export class DataCollector {
              const conn = await connect();
             const response = await conn.query(`SELECT idalmacen, nomalmacen from almacenes WHERE activo=1`)
             if (conn) {
-                conn.end();
+             await conn.end();
             }
             if (response.length > 0) {
                 return res.json(response[0])

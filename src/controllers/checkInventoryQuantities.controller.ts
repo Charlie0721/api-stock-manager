@@ -27,7 +27,9 @@ export const inventoryQuantities = async (req: Request, res: Response) => {
     const totalItems = responseQuantities.length;
     const totalPages = Math.ceil(totalItems / limit);
     if (conn) {
-      conn.end();
+     await conn.end();
+    
+      
     }
     return res.status(200).json({
       inventory: responseQuantities[0],

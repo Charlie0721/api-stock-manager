@@ -20,7 +20,7 @@ export class TradeOrder {
       WHERE
         idalmacen = ${idalm} AND numero > 0;`);
             if (conn) {
-                conn.end()
+                await conn.end()
             }
             return res.json(number[0]);
         } catch (error) {
@@ -60,7 +60,7 @@ export class TradeOrder {
           ${limit} OFFSET ${offset} 
           `);
             if (conn) {
-                conn.end()
+                await conn.end()
             }
             const newProducts = products.map((product: any) => {
                 let baseValue = product.precioventa;
@@ -99,7 +99,7 @@ export class TradeOrder {
             const conn = await connect();
             const warehouses = await conn.query(`SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`)
             if (conn) {
-                conn.end()
+              await conn.end()
             }
             return res.json(warehouses[0]);
         } catch (error) {
@@ -130,7 +130,7 @@ export class TradeOrder {
           LIMIT
           ${limit} OFFSET ${offset} `)
             if (conn) {
-                conn.end()
+              await conn.end()
             }
             const totalItems = customer.length;
             const totalPages = Math.ceil(totalItems / limit);
@@ -156,7 +156,7 @@ export class TradeOrder {
                  WHERE 
                  empleado = 1 AND otros = 1;`)
             if (conn) {
-                conn.end()
+                await conn.end()
             }
             return res.status(200).json({ employee: employee[0] })
 
@@ -231,7 +231,6 @@ export class TradeOrder {
     static ordersByWarehouseAndNumber = async (req: Request, res: Response): Promise<Response> => {
 
         try {
-
             const conn = await connect();
             const numero = req.params.numero;
             const idAlm = req.params.idalmacen;
@@ -251,7 +250,6 @@ export class TradeOrder {
             console.log(error)
             return res.status(500).json({ error: error })
         }
-
     }
 
     /**Crear cliente */

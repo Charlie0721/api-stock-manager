@@ -28,7 +28,6 @@ export class TransfersToCxPos {
     static getWarehousestoTransfer = async (req: Request, res: Response): Promise<Response> => {
 
         try {
-
             const conn = await connect();
             const warehouses = await conn.query(`SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`)
             return res.json(warehouses[0]);
@@ -67,8 +66,8 @@ export class TransfersToCxPos {
             LIMIT ${limit} OFFSET ${offset}
             `)
             if (conn) {
-                conn.end()
-            }
+               await conn.end()
+              }
             if (stockProducto.length > 0) {
                 const totalItems = stockProducto.length;
                 const totalPages = Math.ceil(totalItems / limit);
@@ -141,7 +140,7 @@ export class TransfersToCxPos {
           FROM
             traslados;`)
             if (conn) {
-                conn.end()
+               await conn.end()
               }
             return res.status(200).json(idTrade[0])
         } catch (error) {

@@ -14,7 +14,7 @@ export const SearchPrices = async (req: Request, res: Response) => {
         WHERE b.estado = 0 AND b.aprobada = 1 AND b.tipocompra = 1 AND b.fecha BETWEEN ${newPrices.fecha1} AND ${newPrices.fecha2} AND a.modiprecio = 1
         GROUP BY a.idproducto`)
         if (conn) {
-            conn.end()
+           await conn.end()
           }
         return res.json(response[0])
     } catch (err) {

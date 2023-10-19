@@ -24,7 +24,8 @@ export class Product {
             (p.codigo LIKE '%${codigo}%') LIMIT ${limit} OFFSET ${offset}
             `)
             if (conn) {
-                conn.end();
+              await conn.end();
+                         
             }
             if (productos.length > 0) {
                 const totalItems = productos.length;

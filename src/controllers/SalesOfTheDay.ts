@@ -39,7 +39,7 @@ export class CheckSalesOfTheDay {
             LEFT JOIN almacenes almd ON (a.idalmacen = almd.idalmacen)
             `)
             if (conn) {
-                conn.end()
+              await conn.end()
               }
             //@ts-ignore
             if (rows.length <= 0) {
@@ -72,7 +72,7 @@ export class CheckSalesOfTheDay {
             fecha =${date} AND almacenes.idalmacen=${warehouseId}
             `)
             if (conn) {
-                conn.end()
+               await conn.end()
               }
             //@ts-ignore
             if (responseSales.length <= 0) {
@@ -109,7 +109,7 @@ export class CheckSalesOfTheDay {
             f.idalmacen = ${warehouseId} AND numero = ${number}
             `)
             if (conn) {
-                conn.end()
+              await conn.end()
               }
             //@ts-ignore
             if (responseSalesOfDay.length <= 0) {

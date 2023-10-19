@@ -33,7 +33,7 @@ export const getProductById = async (req: Request, res: Response) => {
         FROM productos
         WHERE idproducto=${id} `)
         if (conn) {
-            conn.end()
+            await conn.end()
           }
         return res.status(200).json(ProductByID[0])
     } catch (error) {

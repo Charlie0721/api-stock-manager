@@ -15,7 +15,7 @@ export class InventoryMovements {
             const consecutive = await conn.query(`SELECT numero, idconceptajuste FROM ctrajustes WHERE numero > 0 AND idconceptajuste = 1 AND idalmacen=${idalm}`
             )
             if (conn) {
-                conn.end();
+              await conn.end();
             }
             return res.json({
                 number: consecutive[0]
@@ -48,7 +48,7 @@ export class InventoryMovements {
           ${limit} OFFSET ${offset}  `
             )
             if (conn) {
-                conn.end();
+                await conn.end();
             }
             const totalItems = thirdParties.length;
             const totalPages = Math.ceil(totalItems / limit);
@@ -107,7 +107,7 @@ export class InventoryMovements {
             LIMIT ${limit} OFFSET ${offset}
             `)
             if (conn) {
-                conn.end();
+                await conn.end();
             }
             if (stockProducto.length > 0) {
                 const totalItems = stockProducto.length;
@@ -174,7 +174,7 @@ export class InventoryMovements {
           FROM
             ctrajustes;`)
             if (conn) {
-                conn.end();
+               await conn.end();
             }
             return res.status(200).json(idPurshable[0])
         } catch (error) {

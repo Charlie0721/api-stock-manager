@@ -40,9 +40,9 @@ export class ProductClass {
     }
     static getStructure = async (req: Request, res: Response) => {
         //Obtener datos de estructura 
-        let conn
+      
         try {
-            conn = await connect();
+          const conn = await connect();
 
             const codeStructure = await conn.query(`  SELECT est.idnivel,est.numcaracteres, est.caractacum, est.caractnivel
               FROM
@@ -56,20 +56,16 @@ export class ProductClass {
         } catch (error) {
             return res.json({ error: error })
         }
-        finally {
-            if (conn) {
-                conn.end();
-            }
-        }
+        
     }
     static getProductsLevels = async (req: Request, res: Response) => {
 
         /**
        * Seleccionar Lineas
        */
-        let conn;
+
         try {
-            conn = await connect();
+            const conn = await connect();
             const limit = Number(req.query.limit) || 10;
             const page = Number(req.query.page) || 1;
             const offset = (page - 1) * limit;
@@ -98,11 +94,7 @@ export class ProductClass {
         } catch (error) {
             return res.json({ error: error })
         }
-        finally {
-            if (conn) {
-                conn.end();
-            }
-        }
+
     }
 
     /**
@@ -124,7 +116,7 @@ export class ProductClass {
             return res.status(500).json({ error: error })
         } finally {
             if (conn) {
-                conn.end();
+                await conn.end();
             }
         }
     }
@@ -149,7 +141,7 @@ export class ProductClass {
             return res.status(500).json({ error: error })
         } finally {
             if (conn) {
-                conn.end();
+                await conn.end();
             }
         }
 
@@ -177,7 +169,7 @@ export class ProductClass {
             return res.status(500).json({ error: error })
         } finally {
             if (conn) {
-                conn.end();
+                await conn.end();
             }
         }
 
@@ -187,15 +179,15 @@ export class ProductClass {
    * Obtener el id del ultimo producto creado
    */
     static getIdProduct = async (req: Request, res: Response) => {
-       
+
         try {
-           const conn = await connect();
+            const conn = await connect();
             const productId = await conn.query(`SELECT  
            MAX(p.idproducto) AS ultimo_id
            FROM productos p`);
-           if (conn) {
-            conn.end();
-        }
+            if (conn) {
+                await conn.end();
+            }
             if (productId.length > 0) {
                 return res.json(productId[0],
 
@@ -206,7 +198,7 @@ export class ProductClass {
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
-        }        
+        }
     }
 
     static searchExistingBarcode = async (req: Request, res: Response) => {
@@ -225,7 +217,7 @@ export class ProductClass {
        GROUP BY
        p.idproducto`)
             if (conn) {
-                conn.end();
+                await conn.end();
             }
             //@ts-ignore
             if (rows.length <= 0) {

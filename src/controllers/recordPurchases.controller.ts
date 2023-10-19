@@ -34,8 +34,7 @@ export class ChargePurchases {
             ${limit} OFFSET ${offset}      
             `);
             if (conn) {
-                conn.end();
-                console.log('La conexión se cerró correctamente.');
+                await conn.end();
             }
             const totalItems = products.length;
             const totalPages = Math.ceil(totalItems / limit);
@@ -90,7 +89,7 @@ export class ChargePurchases {
             const conn = await connect();
             const warehouses = await conn.query(`SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`)
             if (conn) {
-                conn.end();
+               await conn.end();
             }
             return res.json(warehouses[0]);
         } catch (error) {
@@ -111,7 +110,7 @@ export class ChargePurchases {
             const suppliers = await conn.query(`SELECT idtercero, nombres, nit FROM terceros WHERE proveedor = 1`
             )
             if (conn) {
-                conn.end();
+                await conn.end();
             }
             return res.json(suppliers[0]);
         } catch (error) {
@@ -137,7 +136,7 @@ export class ChargePurchases {
         WHERE
             inclprecio = 0;`)
             if (conn) {
-                conn.end();
+              await conn.end();
             }
             return res.status(200).json(taxes[0])
 
@@ -201,7 +200,7 @@ export class ChargePurchases {
             return res.status(500).json({ error: error })
         } finally {
             if (conn) {
-                conn.end();
+                await conn.end();
             }
         }
     }
