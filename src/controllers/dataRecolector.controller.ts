@@ -10,9 +10,9 @@ export class DataCollector {
    */
 
     static searchProductBarcode = async (req: Request, res: Response): Promise<Response> => {
-
+        let conn;
         try {
-            const conn = await connect();
+          conn = await connect();
             let barcodeFound: ISearchByBarcodeToCollector = req.body.barcode;
             const response = await conn.query(`SELECT descripcion, precioventa, barcode FROM productos WHERE barcode =${barcodeFound}`)
             return res.status(200).json(response[0])
@@ -20,6 +20,10 @@ export class DataCollector {
         } catch (error) {
             console.log(error) 
             return res.status(500).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
 
     }
@@ -105,9 +109,9 @@ export class DataCollector {
         }
     }
     static searchWarehousesActive = async (req: Request, res: Response) => {
-
+        let conn
         try {
-            const conn = await connect();
+             conn = await connect();
             const response = await conn.query(`SELECT idalmacen, nomalmacen from almacenes WHERE activo=1`)
 
             if (response.length > 0) {
@@ -119,8 +123,11 @@ export class DataCollector {
             console.log(error)
             return res.status(500).json({ error: error })
         }
-
-
+        finally {
+            if (conn) {
+                conn.end();
+            }
+        }
     }
 
 }

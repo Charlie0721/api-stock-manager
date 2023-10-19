@@ -8,9 +8,9 @@ interface IsearchSales {
 export class CheckSalesOfTheDay {
 
     static checkSales = async (req: Request, res: Response) => {
-
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const consultationDate: IsearchSales = req.body.initialDate;
             const [rows] = await conn.query(`SELECT   a.fecha, a.idalmacen, a.prodvendid, e.subtot, e.ivaimp, a.costoacum, e.sumdesc, e.total, e.retencion, e.cantfact, f.valordev, e.valpropina, e.total + IF(ISNULL(e.valpropina), 0, e.valpropina) AS totalconprop, almd.nomalmacen, e.otrosimpuestos, e.impuestoinc
             FROM (SELECT a.idalmacen, a.fecha, SUM(a.valortotal) AS total, COUNT(a.idfactura) AS cantfact, SUM(a.valretenciones) AS retencion, SUM(a.valimpuesto) AS ivaimp, SUM(a.subtotal) AS subtot, SUM(a.valdescuentos) AS sumdesc, SUM(b.propina) AS valpropina, SUM(a.otrosimpuestos) otrosimpuestos, SUM(a.impuestoinc) impuestoinc
@@ -40,7 +40,6 @@ export class CheckSalesOfTheDay {
             `)
             //@ts-ignore
             if (rows.length <= 0) {
-
                 return res.status(401).json({
                     message: `No se encontraron facturas con la fecha ${consultationDate}`
                 })
@@ -48,18 +47,21 @@ export class CheckSalesOfTheDay {
             return res.status(200).json({
                 message: "Facturas encontradas",
                 sales: rows,
-
             })
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
     }
 
     static getSalesByWarehouse = async (req: Request, res: Response) => {
-
+        let conn
         try {
-            const conn = await connect();
+            conn = await connect();
             let date: string = req.params.fecha;
             let warehouseId: string = req.params.idalmacen
 
@@ -83,19 +85,21 @@ export class CheckSalesOfTheDay {
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
-
-
     }
 
     static detailOfSalesOfTheDay = async (req: Request, res: Response) => {
-
+        let conn
         try {
-            const conn = await connect();
+            conn = await connect();
             const number = req.params.numero;
             const warehouseId = req.params.idalmacen;
 
-            const responseSalesOfDay:any= await conn.query(`
+            const responseSalesOfDay: any = await conn.query(`
             SELECT
             f.numero, f.valimpuesto, f.subtotal, f.valdescuentos, f.valortotal, p.descripcion, detf.valorprod, detf.descuento, detf.porcdesc, f.fecha, t.nombres, t.apellidos, detf.cantidad, f.idalmacen, (p.ultcosto * detf.cantidad) AS total_costo
             FROM
@@ -115,16 +119,17 @@ export class CheckSalesOfTheDay {
             return res.status(200).json({
                 message: "Factura encontrada",
                 sales: responseSalesOfDay[0],
-                detailSale:responseSalesOfDay[0][1]
+                detailSale: responseSalesOfDay[0][1]
             })
 
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
-
-
     }
-
 }
 

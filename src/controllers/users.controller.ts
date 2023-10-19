@@ -6,9 +6,9 @@ import { RowDataPacket } from 'mysql2/promise';
 export class UsersController {
 
     static saveUser = async (req: Request, res: Response): Promise<Response | any> => {
-
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const user: SigninInterface = req.body;
             const { uuid, email, password, userType } = user
             const hashedPassword = await this.hashPassword(password);
@@ -32,9 +32,13 @@ export class UsersController {
                 email
             })
         } catch (error) {
-
             console.log(error);
             return res.status(500).json({ error: error })
+        }
+        finally {
+            if (conn) {
+                conn.end();
+            }
         }
     }
     static hashPassword = async (password: string): Promise<string> => {
@@ -45,8 +49,9 @@ export class UsersController {
     static loginUSer = async (req: Request, res: Response): Promise<Response> => {
         const user: LoginInterface = req.body;
         const { email, password } = user;
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const [userFound] = await conn.query<RowDataPacket[]>(`
                 SELECT * FROM users_stock_manager WHERE email=?            
               `, [email])
@@ -70,6 +75,10 @@ export class UsersController {
         } catch (error) {
             console.log(error);
             return res.status(500).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
     }
     static comparePasswords = async (plainPassword: string, hashedPassword: string): Promise<boolean> => {

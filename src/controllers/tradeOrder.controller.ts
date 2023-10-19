@@ -9,10 +9,10 @@ export class TradeOrder {
     /**Obtener el numero del pedido deacuerdo al almacén */
 
     static getNumberOrder = async (req: Request, res: Response): Promise<Response> => {
-
+        let conn;
         try {
 
-            const conn = await connect();
+            conn = await connect();
             const idalm = req.params.idalmacen;
             const number = await conn.query(`SELECT
         numero
@@ -20,24 +20,24 @@ export class TradeOrder {
         pedidos
       WHERE
         idalmacen = ${idalm} AND numero > 0;`);
-
             return res.json(number[0]);
-
-
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
-
     }
 
     /**Obtener productos activos */
 
     static getProducts = async (req: Request, res: Response) => {
-
+        let conn;
         try {
 
-            const conn = await connect();
+            conn = await connect();
             const idalmacen = req.params.idalmacen;
             const limit = Number(req.query.limit) || 2;
             const page = Number(req.query.page) || 1;
@@ -88,27 +88,35 @@ export class TradeOrder {
             console.log(error)
             return res.status(500).json({ error: error })
         }
+        finally {
+            if (conn) {
+                conn.end();
+            }
+        }
     }
 
     /**Obtener los almacenes  */
     static getWarehousestoOrders = async (req: Request, res: Response): Promise<Response> => {
-
+        let conn
         try {
-
-            const conn = await connect();
+            conn = await connect();
             const warehouses = await conn.query(`SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`)
             return res.json(warehouses[0]);
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
     }
 
     /**obtener clientes */
     static getCustomer = async (req: Request, res: Response): Promise<Response> => {
-
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const limit = Number(req.query.limit) || 10;
             const page = Number(req.query.page) || 1;
             const offset = (page - 1) * limit;
@@ -135,12 +143,17 @@ export class TradeOrder {
         } catch (error) {
             console.log(error);
             return res.status(404).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
     }
     /**obtener empleados (vendedores) */
     static getEmployee = async (req: Request, res: Response): Promise<Response> => {
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const employee = await conn.query(`SELECT
                    idtercero, nombres, nit
                  FROM
@@ -152,6 +165,10 @@ export class TradeOrder {
         } catch (error) {
             console.log(error);
             return res.status(404).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
     }
 
@@ -196,8 +213,9 @@ export class TradeOrder {
 
     /*obtener el id del ultimo pedido insertado*/
     static getIdTradeOrder = async (req: Request, res: Response): Promise<Response> => {
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const idTrade = await conn.query(`SELECT
         idpedido
       FROM
@@ -206,6 +224,10 @@ export class TradeOrder {
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
     }
 

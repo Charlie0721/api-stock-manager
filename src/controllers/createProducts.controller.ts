@@ -9,10 +9,10 @@ export class ProductClass {
  * conocer el numero de movimiento de inventario
  */
     static getCode = async (req: Request, res: Response) => {
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const codigo = req.query.codigo
-
             const responseCode = await conn.query(`SELECT
                 MAX(p.codigo) AS ultimo_codigo,
                 p.codigo, n.codigo, n.idregistro
@@ -32,14 +32,17 @@ export class ProductClass {
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
     }
-
-
     static getStructure = async (req: Request, res: Response) => {
         //Obtener datos de estructura 
+        let conn
         try {
-            const conn = await connect();
+            conn = await connect();
 
             const codeStructure = await conn.query(`  SELECT est.idnivel,est.numcaracteres, est.caractacum, est.caractnivel
               FROM
@@ -53,15 +56,20 @@ export class ProductClass {
         } catch (error) {
             return res.json({ error: error })
         }
+        finally {
+            if (conn) {
+                conn.end();
+            }
+        }
     }
     static getProductsLevels = async (req: Request, res: Response) => {
 
         /**
        * Seleccionar Lineas
        */
-
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const limit = Number(req.query.limit) || 10;
             const page = Number(req.query.page) || 1;
             const offset = (page - 1) * limit;
@@ -74,8 +82,6 @@ export class ProductClass {
              nivelesprod niv WHERE 
             (niv.nombre LIKE '%${nombre}%') AND 
             (niv.codigo LIKE '%${codigo}%')LIMIT ${limit} OFFSET ${offset}`)
-
-
             if (productLevels.length > 0) {
                 const totalItems = productLevels.length;
                 const totalPages = Math.ceil(totalItems / limit);
@@ -92,16 +98,20 @@ export class ProductClass {
         } catch (error) {
             return res.json({ error: error })
         }
+        finally {
+            if (conn) {
+                conn.end();
+            }
+        }
     }
 
     /**
    * Seleccionar tarifa de IVA Compras
    */
     static getTaxShopping = async (req: Request, res: Response): Promise<Response> => {
-
+        let conn;
         try {
-
-            const conn = await connect();
+            conn = await connect();
             const taxes = await conn.query(`SELECT
             i.codiva, i.nombre, i.porcentaje
         FROM
@@ -109,23 +119,22 @@ export class ProductClass {
         WHERE
             i.inclprecio = 0;`)
             return res.status(200).json(taxes[0])
-
         } catch (error) {
-
             console.log(error)
             return res.status(500).json({ error: error })
-
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
-
     }
     /**
     * Seleccionar tarifa de IVA Ventas
     */
     static getTaxSales = async (req: Request, res: Response): Promise<Response> => {
-
+        let conn;
         try {
-
-            const conn = await connect();
+            conn = await connect();
             const taxes = await conn.query(`
             SELECT
               i.codiva, i.nombre, i.porcentaje
@@ -136,10 +145,12 @@ export class ProductClass {
             return res.status(200).json(taxes[0])
 
         } catch (error) {
-
             console.log(error)
             return res.status(500).json({ error: error })
-
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
 
     }
@@ -147,16 +158,15 @@ export class ProductClass {
    * Obtener unidades de medida
    */
     static getUnitsOfMeasure = async (req: Request, res: Response): Promise<Response> => {
-
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const response = await conn.query(`SELECT u.idunmedida, u.nommedida
             FROM medidas u`)
             if (response.length > 0) {
                 return res.json({
                     status: 200,
                     unitsOfMeasure: response[0],
-
                 })
             } else {
                 return res.json({ message: 'units of measure not found' })
@@ -165,6 +175,10 @@ export class ProductClass {
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
 
     }
@@ -173,9 +187,9 @@ export class ProductClass {
    * Obtener el id del ultimo producto creado
    */
     static getIdProduct = async (req: Request, res: Response) => {
+        let conn;
         try {
-
-            const conn = await connect();
+            conn = await connect();
             const productId = await conn.query(`SELECT  
            MAX(p.idproducto) AS ultimo_id
            FROM productos p`);
@@ -190,38 +204,51 @@ export class ProductClass {
             console.log(error)
             return res.status(500).json({ error: error })
         }
+        finally {
+            if (conn) {
+                conn.end();
+            }
+        }
 
     }
 
-
-
     static searchExistingBarcode = async (req: Request, res: Response) => {
-        const conn = await connect();
 
-        const barcode = req.query.barcode || '';
-        const [rows] = await conn.query(`SELECT
-        p.descripcion, p.precioventa,  p.idproducto, barr.barcode, p.barcode
-    FROM
-       productos p
-       LEFT JOIN 
-       barrasprod barr ON p.idproducto = barr.idproducto
-    WHERE
-    p.barcode=${barcode} OR barr.barcode=${barcode}
-    GROUP BY
-    p.idproducto`)
-        //@ts-ignore
-        if (rows.length <= 0) {
-            return res.status(200).json({
-                message: 'barcode not found',
-            })
+        let conn;
+        try {
+            conn = await connect();
+            const barcode = req.query.barcode || '';
+            const [rows] = await conn.query(`SELECT
+           p.descripcion, p.precioventa,  p.idproducto, barr.barcode, p.barcode
+       FROM
+          productos p
+          LEFT JOIN 
+          barrasprod barr ON p.idproducto = barr.idproducto
+       WHERE
+       p.barcode=${barcode} OR barr.barcode=${barcode}
+       GROUP BY
+       p.idproducto`)
+            //@ts-ignore
+            if (rows.length <= 0) {
+                return res.status(200).json({
+                    message: 'barcode not found',
+                })
 
-        } else {
-            return res.status(200).json({
-                message: 'barcode found',
-                barcode: rows
-            })
+            } else {
+                return res.status(200).json({
+                    message: 'barcode found',
+                    barcode: rows
+                })
+            }
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ error: error })
         }
-
+        finally {
+            if (conn) {
+                conn.end();
+            }
+        }
     }
     /**
    * Crear el producto
@@ -232,11 +259,8 @@ export class ProductClass {
             const pool = await connect();
             const conn = await pool.getConnection();
             try {
-
                 await conn.query(`START TRANSACTION`);
                 const product: ProductsI = req.body;
-
-
                 const [newProductResponse] = await conn.query(`INSERT INTO productos 
                     (codigo,barcode,descripcion,idunmedida,codiva, tipo,codivaesp1,codivaesp2,costo, ultcosto, precioventa,
                     estado,compuesto,idareaserv,codivacomp,agruparalfacturar) 

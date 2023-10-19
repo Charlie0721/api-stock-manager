@@ -42,12 +42,11 @@ export class TransfersToCxPos {
     /**Obtener productos según almacen de Origen */
 
     static getProducts = async (req: Request, res: Response): Promise<Response> => {
-
+        let conn;
         try {
-
-            const conn = await connect();
+            conn = await connect();
             const idalmacen: string = req.params.idalmacen
-         
+
             const limit = Number(req.query.limit) || 2;
             const page = Number(req.query.page) || 1;
             const offset = (page - 1) * limit;
@@ -77,16 +76,15 @@ export class TransfersToCxPos {
                     totalPages: totalPages
                 })
             } else {
-
                 return res.status(404).json({ message: 'data not found' })
-
             }
-
-        }
-
-        catch (error) {
+        } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
 
     }
@@ -114,12 +112,9 @@ export class TransfersToCxPos {
                         await conn.query(`INSERT INTO  dettraslado (idtraslado,idproducto,cantidad,idalmacendest,costo,precio)
                         VALUES (?,?,?,?,?,?) `, [destructuringInsertId, item.idproducto, item.cantidad, item.idalmacendest, item.costo, item.precio])
                     })
-
-
                 } else {
                     return res.status(400).json({ message: "id not found !!!" })
                 }
-
                 await conn.query(`COMMIT`);
                 if (responseTransfer)
                     return res.status(200).json({
@@ -140,8 +135,9 @@ export class TransfersToCxPos {
     }
     /*obtener el id del ultimo traslado insertado*/
     static getIdTransfer = async (req: Request, res: Response): Promise<Response> => {
+        let conn;
         try {
-            const conn = await connect();
+            conn = await connect();
             const idTrade = await conn.query(`SELECT
             idtraslado
           FROM
@@ -150,10 +146,12 @@ export class TransfersToCxPos {
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
+        } finally {
+            if (conn) {
+                conn.end();
+            }
         }
     }
-
-
 }
 
 

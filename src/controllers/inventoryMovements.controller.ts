@@ -79,20 +79,17 @@ export class InventoryMovements {
     */
 
     static getProductStock = async (req: Request, res: Response) => {
+
+
+        let conn;
         try {
-
-
-
-
-            const conn = await connect();
+            conn = await connect();
             const idalmacen: string = req.params.idalmacen
-
             const limit = Number(req.query.limit) || 2;
             const page = Number(req.query.page) || 1;
             const offset = (page - 1) * limit;
             const descripcion = req.query.descripcion || '';
             const barcode = req.query.barcode || '';
-
             const stockProducto = await conn.query(`SELECT
             p.idproducto, p.costo, p.precioventa, p.descripcion, p.barcode, p.codigo, i.cantidad AS cantidadAct, alm.nomalmacen
             FROM
@@ -116,17 +113,16 @@ export class InventoryMovements {
                     totalPages: totalPages
                 })
             } else {
-
                 return res.status(404).json({ message: 'data not found' })
-
             }
-
         }
-
         catch (error) {
             return res.status(500).json({ message: error })
+        } finally {
+            if (conn) {
+               conn.end();
+            }
         }
-
     }
 
     /**
