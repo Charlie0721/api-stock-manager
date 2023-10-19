@@ -14,8 +14,10 @@ export class InventoryMovements {
             const idalm = req.params.idalmacen
             const consecutive = await conn.query(`SELECT numero, idconceptajuste FROM ctrajustes WHERE numero > 0 AND idconceptajuste = 1 AND idalmacen=${idalm}`
             )
+            if (conn) {
+                conn.end();
+            }
             return res.json({
-
                 number: consecutive[0]
             })
         } catch (error) {
@@ -45,6 +47,9 @@ export class InventoryMovements {
           LIMIT
           ${limit} OFFSET ${offset}  `
             )
+            if (conn) {
+                conn.end();
+            }
             const totalItems = thirdParties.length;
             const totalPages = Math.ceil(totalItems / limit);
             return res.status(200).json({
@@ -80,10 +85,8 @@ export class InventoryMovements {
 
     static getProductStock = async (req: Request, res: Response) => {
 
-
-        let conn;
         try {
-            conn = await connect();
+            const conn = await connect();
             const idalmacen: string = req.params.idalmacen
             const limit = Number(req.query.limit) || 2;
             const page = Number(req.query.page) || 1;
@@ -103,7 +106,9 @@ export class InventoryMovements {
             p.idproducto  
             LIMIT ${limit} OFFSET ${offset}
             `)
-
+            if (conn) {
+                conn.end();
+            }
             if (stockProducto.length > 0) {
                 const totalItems = stockProducto.length;
                 const totalPages = Math.ceil(totalItems / limit);
@@ -118,11 +123,7 @@ export class InventoryMovements {
         }
         catch (error) {
             return res.status(500).json({ message: error })
-        } finally {
-            if (conn) {
-               conn.end();
-            }
-        }
+        } 
     }
 
     /**
@@ -172,6 +173,9 @@ export class InventoryMovements {
             idajuste
           FROM
             ctrajustes;`)
+            if (conn) {
+                conn.end();
+            }
             return res.status(200).json(idPurshable[0])
         } catch (error) {
             console.log(error)

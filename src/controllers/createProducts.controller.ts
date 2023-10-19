@@ -187,12 +187,15 @@ export class ProductClass {
    * Obtener el id del ultimo producto creado
    */
     static getIdProduct = async (req: Request, res: Response) => {
-        let conn;
+       
         try {
-            conn = await connect();
+           const conn = await connect();
             const productId = await conn.query(`SELECT  
            MAX(p.idproducto) AS ultimo_id
            FROM productos p`);
+           if (conn) {
+            conn.end();
+        }
             if (productId.length > 0) {
                 return res.json(productId[0],
 
@@ -203,20 +206,13 @@ export class ProductClass {
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
-        }
-        finally {
-            if (conn) {
-                conn.end();
-            }
-        }
-
+        }        
     }
 
     static searchExistingBarcode = async (req: Request, res: Response) => {
 
-        let conn;
         try {
-            conn = await connect();
+            const conn = await connect();
             const barcode = req.query.barcode || '';
             const [rows] = await conn.query(`SELECT
            p.descripcion, p.precioventa,  p.idproducto, barr.barcode, p.barcode
@@ -228,6 +224,9 @@ export class ProductClass {
        p.barcode=${barcode} OR barr.barcode=${barcode}
        GROUP BY
        p.idproducto`)
+            if (conn) {
+                conn.end();
+            }
             //@ts-ignore
             if (rows.length <= 0) {
                 return res.status(200).json({
@@ -244,11 +243,7 @@ export class ProductClass {
             console.log(error)
             return res.status(500).json({ error: error })
         }
-        finally {
-            if (conn) {
-                conn.end();
-            }
-        }
+
     }
     /**
    * Crear el producto

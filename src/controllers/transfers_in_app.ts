@@ -42,9 +42,9 @@ export class TransfersToCxPos {
     /**Obtener productos según almacen de Origen */
 
     static getProducts = async (req: Request, res: Response): Promise<Response> => {
-        let conn;
+
         try {
-            conn = await connect();
+            const conn = await connect();
             const idalmacen: string = req.params.idalmacen
 
             const limit = Number(req.query.limit) || 2;
@@ -66,7 +66,9 @@ export class TransfersToCxPos {
             p.idproducto  
             LIMIT ${limit} OFFSET ${offset}
             `)
-
+            if (conn) {
+                conn.end()
+            }
             if (stockProducto.length > 0) {
                 const totalItems = stockProducto.length;
                 const totalPages = Math.ceil(totalItems / limit);
@@ -81,10 +83,6 @@ export class TransfersToCxPos {
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
-        } finally {
-            if (conn) {
-                conn.end();
-            }
         }
 
     }
@@ -135,22 +133,21 @@ export class TransfersToCxPos {
     }
     /*obtener el id del ultimo traslado insertado*/
     static getIdTransfer = async (req: Request, res: Response): Promise<Response> => {
-        let conn;
+     
         try {
-            conn = await connect();
+            const conn = await connect();
             const idTrade = await conn.query(`SELECT
             idtraslado
           FROM
             traslados;`)
+            if (conn) {
+                conn.end()
+              }
             return res.status(200).json(idTrade[0])
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
-        } finally {
-            if (conn) {
-                conn.end();
-            }
-        }
+        } 
     }
 }
 

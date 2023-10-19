@@ -6,9 +6,9 @@ export class Product {
 
     static allProducts = async (req: Request, res: Response) => {
 
-        let conn;
+
         try {
-            conn = await connect();
+            const conn = await connect();
             const limit = Number(req.query.limit) || 10;
             const page = Number(req.query.page) || 1;
             const offset = (page - 1) * limit;
@@ -23,7 +23,9 @@ export class Product {
             (p.barcode LIKE '%${barcode}%')AND
             (p.codigo LIKE '%${codigo}%') LIMIT ${limit} OFFSET ${offset}
             `)
-
+            if (conn) {
+                conn.end();
+            }
             if (productos.length > 0) {
                 const totalItems = productos.length;
                 const totalPages = Math.ceil(totalItems / limit);
@@ -36,17 +38,12 @@ export class Product {
 
             } else {
                 return res.json({ message: 'products not found' })
-
             }
         }
         catch (error) {
             console.log(error)
         }
-        finally {
-            if (conn) {
-                conn.end();
-            }
-        }
+
     }
 }
 

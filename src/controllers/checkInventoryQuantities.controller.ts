@@ -5,9 +5,9 @@ import { connect } from '../database'
  * Traer productos con cantidades 
  */
 export const inventoryQuantities = async (req: Request, res: Response) => {
-  let conn
+
   try {
-    conn = await connect();
+    const conn = await connect();
     const limit = Number(req.query.limit) || 10;
     const page = Number(req.query.page) || 1;
     const offset = (page - 1) * limit;
@@ -26,6 +26,9 @@ export const inventoryQuantities = async (req: Request, res: Response) => {
       LIMIT ${limit} OFFSET ${offset}`)
     const totalItems = responseQuantities.length;
     const totalPages = Math.ceil(totalItems / limit);
+    if (conn) {
+      conn.end();
+    }
     return res.status(200).json({
       inventory: responseQuantities[0],
       page: page, offset, limit,
@@ -35,10 +38,6 @@ export const inventoryQuantities = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json(error)
-  } finally {
-    if (conn) {
-      conn.end();
-    }
   }
 }
 

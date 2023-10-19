@@ -13,9 +13,9 @@ export class ChargePurchases {
 
     static activeProductsToPurchases = async (req: Request, res: Response) => {
 
-        let conn;
+
         try {
-            conn = await connect();
+            const conn = await connect();
             const limit = Number(req.query.limit) || 2;
             const page = Number(req.query.page) || 1;
             const offset = (page - 1) * limit;
@@ -33,6 +33,10 @@ export class ChargePurchases {
             LIMIT
             ${limit} OFFSET ${offset}      
             `);
+            if (conn) {
+                conn.end();
+                console.log('La conexión se cerró correctamente.');
+            }
             const totalItems = products.length;
             const totalPages = Math.ceil(totalItems / limit);
             return res.json({
@@ -44,10 +48,6 @@ export class ChargePurchases {
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
-        } finally {
-            if (conn) {
-                conn.end();
-            }
         }
     }
 
@@ -57,9 +57,9 @@ export class ChargePurchases {
      */
 
     static numberPurchase = async (req: Request, res: Response): Promise<Response> => {
-        let conn;
+
         try {
-            conn = await connect();
+            const conn = await connect();
             const idalm = req.params.idalmacen
             const response = await conn.query(`SELECT
             numero
@@ -67,15 +67,15 @@ export class ChargePurchases {
             compras
         WHERE
             idalmacen =${idalm} AND numero > 0;`)
+            if (conn) {
+                conn.end(); // Cerrar la conexión si está definida.
+                console.log('La conexión se cerró correctamente.');
+            }
             return res.json(response[0]);
 
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
-        } finally {
-            if (conn) {
-                conn.end();
-            }
         }
     }
 
@@ -85,19 +85,17 @@ export class ChargePurchases {
      */
 
     static getWarehousestoPurchases = async (req: Request, res: Response): Promise<Response> => {
-        let conn;
         try {
 
-            conn = await connect();
+            const conn = await connect();
             const warehouses = await conn.query(`SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`)
+            if (conn) {
+                conn.end();
+            }
             return res.json(warehouses[0]);
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
-        } finally {
-            if (conn) {
-                conn.end();
-            }
         }
     }
 
@@ -106,20 +104,19 @@ export class ChargePurchases {
      */
 
     static getSuppliers = async (req: Request, res: Response): Promise<Response> => {
-        let conn;
+
         try {
 
-            conn = await connect();
+            const conn = await connect();
             const suppliers = await conn.query(`SELECT idtercero, nombres, nit FROM terceros WHERE proveedor = 1`
             )
+            if (conn) {
+                conn.end();
+            }
             return res.json(suppliers[0]);
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
-        } finally {
-            if (conn) {
-                conn.end();
-            }
         }
     }
 
@@ -129,28 +126,26 @@ export class ChargePurchases {
      */
 
     static getIva = async (req: Request, res: Response): Promise<Response> => {
-        let conn;
+
         try {
 
-            conn = await connect();
+            const conn = await connect();
             const taxes = await conn.query(`SELECT
             codiva, nombre, porcentaje
         FROM
             iva
         WHERE
             inclprecio = 0;`)
+            if (conn) {
+                conn.end();
+            }
             return res.status(200).json(taxes[0])
 
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
-        } finally {
-            if (conn) {
-                conn.end();
-            }
         }
     }
-
 
     /**
      * Guardar la compra 

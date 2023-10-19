@@ -4,50 +4,46 @@ import { IEditProduct } from '../interface/updateProduct.interface';
 import { IAddBarcodes } from '../interface/barcode.interface'
 
 export const UpdateProduct = async (req: Request, res: Response) => {
-    let conn;
+
     try {
-        conn = await connect();
+      const conn = await connect();
         const id: number = parseInt(req.params.idproducto);
         const editProduct: IEditProduct = req.body
         const productUpdated = await conn.query(`UPDATE productos set ? WHERE idproducto= ?`, [editProduct, id]
         )
+        if (conn) {
+            conn.end()
+          }
         return res.json({
             message: 'product updated succesfully',
             product: productUpdated[0]
         })
     } catch (err) {
         console.log(err)
-    } finally {
-        if (conn) {
-            conn.end();
-        }
-    }
+    } 
 
 }
 export const getProductById = async (req: Request, res: Response) => {
-    let conn;
+
     try {
-        conn = await connect();
+      const conn = await connect();
         const id: string = req.params.idproducto;
         const ProductByID = await conn.query(`SELECT productos.idproducto, productos.barcode, productos.costo, productos.ultcosto, 
         productos.descripcion, productos.precioventa, productos.precioespecial1, productos.precioespecial2
         FROM productos
         WHERE idproducto=${id} `)
+        if (conn) {
+            conn.end()
+          }
         return res.status(200).json(ProductByID[0])
     } catch (error) {
         console.log(error)
-    } finally {
-        if (conn) {
-            conn.end();
-        }
-    }
-
+    } 
 }
-
 export const addMultipleBarcodes = async (req: Request, res: Response) => {
-    let conn
+ 
     try {
-        conn = await connect();
+       const conn = await connect();
         const id: string = req.params.idproducto;
         const barcode: IAddBarcodes = req.body;
         const [rows] = await conn.query(`SELECT
@@ -61,6 +57,7 @@ export const addMultipleBarcodes = async (req: Request, res: Response) => {
     GROUP BY
     p.idproducto`)
         //@ts-ignore
+        
         if (rows.length <= 0) {
             const addBarcodes = await conn.query(`INSERT into barrasprod (idproducto, barcode) 
                 VALUES (?,?)`, [id, barcode.barcode])
@@ -80,11 +77,7 @@ export const addMultipleBarcodes = async (req: Request, res: Response) => {
             message: 'Error!',
             error: error
         })
-    } finally {
-        if (conn) {
-            conn.end();
-        }
-    }
+    } 
 }
 
 
