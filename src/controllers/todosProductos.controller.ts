@@ -24,7 +24,7 @@ export class Product {
             (p.codigo LIKE '%${codigo}%') LIMIT ${limit} OFFSET ${offset}
             `)
             if (conn) {
-              await conn.end();
+            await conn.end();
                          
             }
             if (productos.length > 0) {
