@@ -3,6 +3,7 @@ import { connect } from '../database';
 import { ItradeOrderHeader } from '../interface/tradeOrder.interface'
 import { IcreateClient } from '../interface/createClient.interface'
 import { RowDataPacket } from 'mysql2';
+import { log } from 'console';
 
 export class TradeOrder {
 
@@ -99,7 +100,7 @@ export class TradeOrder {
             const conn = await connect();
             const warehouses = await conn.query(`SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`)
             if (conn) {
-              await conn.end()
+                await conn.end()
             }
             return res.json(warehouses[0]);
         } catch (error) {
@@ -130,7 +131,7 @@ export class TradeOrder {
           LIMIT
           ${limit} OFFSET ${offset} `)
             if (conn) {
-              await conn.end()
+                await conn.end()
             }
             const totalItems = customer.length;
             const totalPages = Math.ceil(totalItems / limit);
@@ -259,13 +260,22 @@ export class TradeOrder {
             const conn = await connect();
             const client: IcreateClient = req.body;
 
+            const [customerFound] = await conn.query<RowDataPacket[]>(`SELECT
+            nombres, nit, idtercero 
+            FROM
+            terceros
+            WHERE nit=?`,
+                [client.nit])
+
+            if (customerFound.length > 0) {
+                return res.status(201).json({ message: "¡Customer already exist!" })
+            }
             const responseClient = await conn.query(`INSERT INTO terceros SET?`, [client]);
             return res.status(200).json({
                 data: responseClient,
                 client: client,
                 message: "client created successfully"
             });
-
         } catch (error) {
             console.log(error)
             return res.status(500).json({ error: error })
