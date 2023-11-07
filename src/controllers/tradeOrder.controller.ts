@@ -3,7 +3,7 @@ import { connect } from '../database';
 import { ItradeOrderHeader } from '../interface/tradeOrder.interface'
 import { IcreateClient } from '../interface/createClient.interface'
 import { RowDataPacket } from 'mysql2';
-import { log } from 'console';
+import { INeighborhoodsInterface } from '../interface/neighborhoods.interface'
 
 export class TradeOrder {
 
@@ -284,6 +284,117 @@ export class TradeOrder {
 
     }
 
+    static getCountries = async (req: Request, res: Response): Promise<Response> => {
+
+        try {
+            const conn = await connect();
+            const [countries] = await conn.query<RowDataPacket[]>(`SELECT 
+            idpais, nompais, codpais
+            FROM paises `)
+            if (countries.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron paises' });
+            }
+            return res.status(200).json(countries);
+
+        }
+        catch (error) {
+            console.error(error)
+            return res.status(500).json({ error: error })
+        }
+
+    }
+
+    static getMunicipalities = async (req: Request, res: Response): Promise<Response> => {
+
+        try {
+            const conn = await connect();
+            const [municipalities] = await conn.query<RowDataPacket[]>(`SELECT 
+            idmunicipio, nommunicipio, iddepto,codmunicipio
+            FROM municipios `)
+            if (municipalities.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron Municipios' });
+            }
+            return res.status(200).json(municipalities);
+        } catch (error) {
+            console.error(error)
+            return res.status(500).json({ error: error })
+
+        }
+
+    }
+
+    static getDepartments = async (req: Request, res: Response): Promise<Response> => {
+
+        try {
+            const conn = await connect();
+            const [departments] = await conn.query<RowDataPacket[]>(`SELECT 
+            iddepto, codigodepto, nomdepartamento,idpais,valorimportacion
+            FROM departamentos `)
+
+            if (departments.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron Departamentos' });
+            }
+            return res.status(200).json(departments);
+
+        } catch (error) {
+            console.error(error)
+            return res.status(500).json({ error: error })
+        }
+    }
+
+    static getNeighborhoods = async (req: Request, res: Response): Promise<Response> => {
+
+        try {
+
+            const conn = await connect();
+            const [neighborhoods] = await conn.query<RowDataPacket[]>(`SELECT
+            b.idbarrio, b.nombarrio, b.idmunicipio,b.codzona
+            FROM 
+            barrios b 
+            `)
+            if (neighborhoods.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron Barrios en la BD' });
+            }
+            return res.status(200).json(neighborhoods);
+
+        } catch (error) {
+            console.error(error)
+            return res.status(500).json({ error: error })
+
+        }
+
+    }
+
+    /**
+     *Crear barrios 
+    */
+    static createNeighborhoods = async (req: Request, res: Response): Promise<Response> => {
+
+        try {
+            const conn = await connect();
+            const neighborhood: INeighborhoodsInterface = req.body;
+            const [neighborhoods] = await conn.query(`INSERT INTO
+                barrios 
+                SET ?
+            `, [neighborhood]);
+    
+            let insertId: number | undefined;
+    
+            if ('insertId' in neighborhoods && typeof neighborhoods.insertId === 'number') {
+                insertId = neighborhoods.insertId;
+            }
+            
+            return res.json({
+                neighborhood,
+                insertId,
+                status: 201
+            });
+
+        } catch (error) {
+            console.error(error)
+            return res.status(500).json({ error: error })
+        }
+    }
 }
 
 

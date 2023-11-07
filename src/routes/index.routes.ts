@@ -67,4 +67,9 @@ router.get('/sales/search-sales-by-day/:fecha/:idalmacen', CheckSalesOfTheDay.ge
 router.get('/sales/search-sales-by-day/detail/:idalmacen/:numero', CheckSalesOfTheDay.detailOfSalesOfTheDay)
 router.post('/users/signin', UsersController.saveUser)
 router.post('/users/login', UsersController.loginUSer)
+router.get('/orders/municpalities', TradeOrder.getMunicipalities)
+router.get('/orders/departments', TradeOrder.getDepartments)
+router.get('/orders/countries', TradeOrder.getCountries)
+router.get('/orders/neighborhoods', TradeOrder.getNeighborhoods)
+router.post('/orders/neighborhoods', TradeOrder.createNeighborhoods)
 export default router;
