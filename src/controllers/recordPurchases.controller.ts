@@ -68,7 +68,6 @@ export class ChargePurchases {
         WHERE
             idalmacen =${idalm} AND numero > 0;`)
             if (conn) {
-                conn.end(); // Cerrar la conexión si está definida.
                 console.log('La conexión se cerró correctamente.');
             }
             return res.json(response[0]);
@@ -79,11 +78,9 @@ export class ChargePurchases {
         }
     }
 
-
     /**
      * Traer almacenes activos
-     */
-
+    */
     static getWarehousestoPurchases = async (req: Request, res: Response): Promise<Response> => {
         try {
 

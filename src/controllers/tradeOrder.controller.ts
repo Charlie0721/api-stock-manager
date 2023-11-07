@@ -41,7 +41,7 @@ export class TradeOrder {
             const offset = (page - 1) * limit;
             const descripcion = req.query.descripcion || '';
             const barcode = req.query.barcode || '';
-    
+
             const [products] = await conn.query<RowDataPacket[]>(`
                 SELECT
                     p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.precioespecial1, p.precioespecial2, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen, iv.porcentaje
@@ -59,11 +59,11 @@ export class TradeOrder {
                     p.idproducto
                 LIMIT ? OFFSET ?
             `, [idalmacen, `%${descripcion}%`, `%${barcode}%`, `%${barcode}%`, limit, offset]);
-    
+
             if (conn) {
                 await conn.end();
             }
-    
+
             const newProducts = products.map((product: any) => {
                 let baseValue = product.precioventa;
                 let taxValue = 0;
@@ -78,10 +78,10 @@ export class TradeOrder {
                     taxValue,
                 }
             });
-    
+
             const totalItems = products.length;
             const totalPages = Math.ceil(totalItems / limit);
-    
+
             return res.json({
                 newProducts,
                 page: page, offset, limit,
@@ -92,7 +92,7 @@ export class TradeOrder {
             return res.status(500).json({ error: error });
         }
     }
-    
+
 
     /**Obtener los almacenes  */
     static getWarehousestoOrders = async (req: Request, res: Response): Promise<Response> => {
@@ -125,12 +125,12 @@ export class TradeOrder {
           FROM
             terceros
           WHERE
-            cliente=1  AND (nombres LIKE '%${nombres}%')
-            AND (nit LIKE '%${nit}%')
+            cliente=1  AND (nombres LIKE ?)
+            AND (nit LIKE ?)
           ORDER BY
             idtercero
-          LIMIT
-          ${limit} OFFSET ${offset} `)
+          LIMIT ? OFFSET ? `,
+                [`%${nombres}%`, `%${nit}%`, limit, offset]);
             if (conn) {
                 await conn.end()
             }
@@ -217,7 +217,7 @@ export class TradeOrder {
       FROM
         pedidos;`)
             if (conn) {
-                conn.end(); // Cerrar la conexión si está definida.
+                conn.end();
                 console.log('La conexión se cerró correctamente.');
             }
             return res.status(200).json(idTrade[0])
