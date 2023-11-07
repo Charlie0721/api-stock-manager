@@ -15,7 +15,7 @@ export class InventoryMovements {
             const consecutive = await conn.query(`SELECT numero, idconceptajuste FROM ctrajustes WHERE numero > 0 AND idconceptajuste = 1 AND idalmacen=${idalm}`
             )
             if (conn) {
-              await conn.end();
+                await conn.end();
             }
             return res.json({
                 number: consecutive[0]
@@ -84,31 +84,37 @@ export class InventoryMovements {
     */
 
     static getProductStock = async (req: Request, res: Response) => {
-
         try {
             const conn = await connect();
-            const idalmacen: string = req.params.idalmacen
+            const idalmacen: string = req.params.idalmacen;
             const limit = Number(req.query.limit) || 2;
             const page = Number(req.query.page) || 1;
             const offset = (page - 1) * limit;
             const descripcion = req.query.descripcion || '';
             const barcode = req.query.barcode || '';
-            const stockProducto = await conn.query(`SELECT
-            p.idproducto, p.costo, p.precioventa, p.descripcion, p.barcode, p.codigo, i.cantidad AS cantidadAct, alm.nomalmacen
-            FROM
-            inventario i
-            INNER JOIN productos p ON i.idproducto = p.idproducto
-            INNER JOIN almacenes alm ON i.idalmacen = alm.idalmacen
-            WHERE
-            i.idalmacen = ${idalmacen} AND p.estado = 1 AND (p.descripcion LIKE '%${descripcion}%')
-            AND (p.barcode LIKE '%${barcode}%')  
-            ORDER BY
-            p.idproducto  
-            LIMIT ${limit} OFFSET ${offset}
-            `)
+
+            const stockProducto = await conn.query(`
+                SELECT
+                    p.idproducto, p.costo, p.precioventa, p.descripcion, p.barcode, p.codigo, i.cantidad AS cantidadAct, alm.nomalmacen
+                FROM
+                    inventario i
+                INNER JOIN productos p ON i.idproducto = p.idproducto
+                INNER JOIN almacenes alm ON i.idalmacen = alm.idalmacen
+                LEFT JOIN barrasprod brp ON p.idproducto = brp.idproducto
+                WHERE
+                    i.idalmacen = ? AND p.estado = 1
+                    AND (p.descripcion LIKE ?)
+                    AND (p.barcode LIKE ?)
+                    OR (brp.barcode LIKE ?)
+                ORDER BY
+                    p.idproducto
+                LIMIT ? OFFSET ?
+            `, [idalmacen, `%${descripcion}%`, `%${barcode}%`, `%${barcode}%`, limit, offset]);
+
             if (conn) {
                 await conn.end();
             }
+
             if (stockProducto.length > 0) {
                 const totalItems = stockProducto.length;
                 const totalPages = Math.ceil(totalItems / limit);
@@ -116,15 +122,15 @@ export class InventoryMovements {
                     stock: stockProducto[0],
                     page: page, offset, limit,
                     totalPages: totalPages
-                })
+                });
             } else {
-                return res.status(404).json({ message: 'data not found' })
+                return res.status(404).json({ message: 'data not found' });
             }
+        } catch (error) {
+            return res.status(500).json({ message: error });
         }
-        catch (error) {
-            return res.status(500).json({ message: error })
-        } 
     }
+
 
     /**
       * Guardar el movimiento de inventario 
@@ -174,7 +180,7 @@ export class InventoryMovements {
           FROM
             ctrajustes;`)
             if (conn) {
-               await conn.end();
+                await conn.end();
             }
             return res.status(200).json(idPurshable[0])
         } catch (error) {

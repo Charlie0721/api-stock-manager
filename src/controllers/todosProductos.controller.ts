@@ -5,8 +5,6 @@ import { connect } from '../database'
 export class Product {
 
     static allProducts = async (req: Request, res: Response) => {
-
-
         try {
             const conn = await connect();
             const limit = Number(req.query.limit) || 10;
@@ -15,18 +13,25 @@ export class Product {
             const codigo = req.query.codigo || '';
             const descripcion = req.query.descripcion || '';
             const barcode = req.query.barcode || '';
-            const productos = await conn.query(`SELECT   p.idproducto, p.barcode, p.costo, p.ultcosto, p.codigo, p.descripcion, p.precioventa, p.precioespecial1,
-            p.precioespecial2
-            FROM
-            productos p WHERE   estado = 1  AND 
-            (p.descripcion LIKE '%${descripcion}%') AND
-            (p.barcode LIKE '%${barcode}%')AND
-            (p.codigo LIKE '%${codigo}%') LIMIT ${limit} OFFSET ${offset}
-            `)
+
+            const query = `
+            SELECT p.idproducto, p.barcode, p.costo, p.ultcosto, p.codigo, p.descripcion, p.precioventa, p.precioespecial1, p.precioespecial2
+            FROM productos p
+            LEFT JOIN barrasprod brp ON p.idproducto = brp.idproducto
+            WHERE p.estado = 1
+            AND (
+                (p.descripcion LIKE ? AND p.barcode LIKE ? AND p.codigo LIKE ?)
+                OR (brp.barcode LIKE ?)
+            )
+            LIMIT ? OFFSET ?
+        `;
+
+            const productos = await conn.query(query, [`%${descripcion}%`, `%${barcode}%`, `%${codigo}%`, `%${barcode}%`, limit, offset]);
+
             if (conn) {
-            await conn.end();
-                         
+                await conn.end();
             }
+
             if (productos.length > 0) {
                 const totalItems = productos.length;
                 const totalPages = Math.ceil(totalItems / limit);
@@ -35,16 +40,13 @@ export class Product {
                     products: productos[0],
                     page: page, offset, limit,
                     totalPages: totalPages
-                })
-
+                });
             } else {
-                return res.json({ message: 'products not found' })
+                return res.json({ message: 'Products not found' });
             }
+        } catch (error) {
+            console.log(error);
         }
-        catch (error) {
-            console.log(error)
-        }
-
     }
 }
 

@@ -10,10 +10,7 @@ export class ChargePurchases {
     /**
    * Traer datos basicos de productos activos
    */
-
     static activeProductsToPurchases = async (req: Request, res: Response) => {
-
-
         try {
             const conn = await connect();
             const limit = Number(req.query.limit) || 2;
@@ -21,18 +18,21 @@ export class ChargePurchases {
             const offset = (page - 1) * limit;
             const descripcion = req.query.descripcion || '';
             const barcode = req.query.barcode || '';
-            const products = await conn.query(`SELECT
-            p.idproducto, p.descripcion, p.barcode, p.codigo, p.costo, p.codiva, p.precioventa
-            FROM
-            productos p
-            WHERE
-            p.estado = 1 AND (p.descripcion LIKE '%${descripcion} %')
-            AND (p.barcode LIKE '%${barcode}%')
-            ORDER BY
-            p.idproducto
-            LIMIT
-            ${limit} OFFSET ${offset}      
-            `);
+
+            const products = await conn.query(`
+                SELECT
+                    p.idproducto, p.descripcion, p.barcode, p.codigo, p.costo, p.codiva, p.precioventa
+                FROM
+                    productos p
+                LEFT JOIN barrasprod brp ON p.idproducto = brp.idproducto
+                WHERE
+                    p.estado = 1 AND (p.descripcion LIKE ?)
+                    AND (p.barcode LIKE ? OR brp.barcode LIKE ?)
+                ORDER BY
+                    p.idproducto
+                LIMIT ? OFFSET ?
+            `, [`%${descripcion}%`, `%${barcode}%`, `%${barcode}%`, limit, offset]);
+
             if (conn) {
                 await conn.end();
             }
@@ -45,10 +45,11 @@ export class ChargePurchases {
             });
 
         } catch (error) {
-            console.log(error)
-            return res.status(500).json({ error: error })
+            console.log(error);
+            return res.status(500).json({ error: error });
         }
     }
+
 
 
     /**
@@ -89,7 +90,7 @@ export class ChargePurchases {
             const conn = await connect();
             const warehouses = await conn.query(`SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`)
             if (conn) {
-               await conn.end();
+                await conn.end();
             }
             return res.json(warehouses[0]);
         } catch (error) {
@@ -136,7 +137,7 @@ export class ChargePurchases {
         WHERE
             inclprecio = 0;`)
             if (conn) {
-              await conn.end();
+                await conn.end();
             }
             return res.status(200).json(taxes[0])
 

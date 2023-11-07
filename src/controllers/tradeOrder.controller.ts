@@ -33,9 +33,7 @@ export class TradeOrder {
     /**Obtener productos activos */
 
     static getProducts = async (req: Request, res: Response) => {
-
         try {
-
             const conn = await connect();
             const idalmacen = req.params.idalmacen;
             const limit = Number(req.query.limit) || 2;
@@ -43,26 +41,29 @@ export class TradeOrder {
             const offset = (page - 1) * limit;
             const descripcion = req.query.descripcion || '';
             const barcode = req.query.barcode || '';
-
-            const [products] = await conn.query<RowDataPacket[]>(`SELECT
-            p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.precioespecial1, p.precioespecial2, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen,iv.porcentaje
-          FROM
-            productos p
-            LEFT JOIN inventario i ON p.idproducto = i.idproducto
-            LEFT JOIN almacenes alm ON i.idalmacen = alm.idalmacen
-            LEFT JOIN iva iv ON p.codiva = iv.codiva
-          WHERE
-            i.idalmacen = ${idalmacen} AND p.estado = 1
-            AND (p.descripcion LIKE '%${descripcion}%')
-            AND (p.barcode LIKE '%${barcode}%')
-          ORDER BY
-            p.idproducto
-          LIMIT
-          ${limit} OFFSET ${offset} 
-          `);
+    
+            const [products] = await conn.query<RowDataPacket[]>(`
+                SELECT
+                    p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.precioespecial1, p.precioespecial2, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen, iv.porcentaje
+                FROM
+                    productos p
+                LEFT JOIN inventario i ON p.idproducto = i.idproducto
+                LEFT JOIN almacenes alm ON i.idalmacen = alm.idalmacen
+                LEFT JOIN iva iv ON p.codiva = iv.codiva
+                LEFT JOIN barrasprod brp ON p.idproducto = brp.idproducto
+                WHERE
+                    i.idalmacen = ? AND p.estado = 1
+                    AND (p.descripcion LIKE ?)
+                    AND (p.barcode LIKE ? OR brp.barcode LIKE ?)
+                ORDER BY
+                    p.idproducto
+                LIMIT ? OFFSET ?
+            `, [idalmacen, `%${descripcion}%`, `%${barcode}%`, `%${barcode}%`, limit, offset]);
+    
             if (conn) {
-                await conn.end()
+                await conn.end();
             }
+    
             const newProducts = products.map((product: any) => {
                 let baseValue = product.precioventa;
                 let taxValue = 0;
@@ -76,22 +77,22 @@ export class TradeOrder {
                     baseValue,
                     taxValue,
                 }
-
-            })
+            });
+    
             const totalItems = products.length;
             const totalPages = Math.ceil(totalItems / limit);
-
+    
             return res.json({
                 newProducts,
                 page: page, offset, limit,
                 totalPages: totalPages
             });
         } catch (error) {
-            console.log(error)
-            return res.status(500).json({ error: error })
+            console.log(error);
+            return res.status(500).json({ error: error });
         }
-
     }
+    
 
     /**Obtener los almacenes  */
     static getWarehousestoOrders = async (req: Request, res: Response): Promise<Response> => {
