@@ -2,10 +2,10 @@ export interface IcreateClient {
 
 nit: string;
 nombres: string;
-nomcomercial: string;
+nomcomercial?: string;
 direccion: string;
 telefono: string;
-email: string;
+email?: string;
 estado: boolean;
 cliente: number;
 tipopersona: number;
