@@ -1,6 +1,7 @@
-import console from 'console'
-import { Request, Response } from 'express'
 
+import { Request, Response } from 'express'
+import dotenv from 'dotenv';
+dotenv.config();
 export class ControlTime {
 
     static controlTime = (req: Request, res: Response) => {

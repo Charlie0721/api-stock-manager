@@ -2,7 +2,8 @@ import { Request, Response } from 'express'
 import { connect } from '../database'
 import { ISearchByBarcodeToCollector } from '../interface/barcode.interface'
 import * as fsFiles from 'fs';
-
+import dotenv from 'dotenv';
+dotenv.config();
 export class DataCollector {
 
     /**

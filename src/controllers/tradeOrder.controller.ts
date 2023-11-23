@@ -129,7 +129,7 @@ export class TradeOrder {
             const nombres = req.query.nombres || '';
             const nit = req.query.nit || '';
             const customer = await conn.query(`SELECT
-            idtercero, nombres, nit
+            idtercero, nombres, apellidos, nit
           FROM
             terceros
           WHERE

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { connect } from '../database'
-
+import {RowDataPacket} from 'mysql2/promise'
 /**
  * Traer productos con cantidades 
  */
@@ -26,7 +26,7 @@ export const inventoryQuantities = async (req: Request, res: Response) => {
       ORDER BY p.idproducto
       LIMIT ? OFFSET ?
   `;
-      const responseQuantities = await conn.query(query, [`%${descripcion}%`, `%${barcode}%`, `%${barcode}%`, limit, offset]);
+      const responseQuantities = await conn.query<RowDataPacket[]>(query, [`%${descripcion}%`, `%${barcode}%`, `%${barcode}%`, limit, offset]);
       const totalItems = responseQuantities.length;
       const totalPages = Math.ceil(totalItems / limit);
 
@@ -44,7 +44,6 @@ export const inventoryQuantities = async (req: Request, res: Response) => {
       return res.status(500).json(error);
   }
 };
-
 
 
 
