@@ -1,7 +1,6 @@
 
 import { Request, Response } from 'express'
-import dotenv from 'dotenv';
-dotenv.config();
+import { SUBSCRIPTION_END_DATE } from '../config/constants'
 export class ControlTime {
 
     static controlTime = (req: Request, res: Response) => {
@@ -27,31 +26,19 @@ export class ControlTime {
         //@ts-ignore    
         const countdown = (deadline, finalMessage) => {
 
-
             const timerUpdate = setInterval(() => {
                 let t = getRemainingTime(deadline);
-
-                // console.log( t.remainDays, t.remainHours, t.remainMinutes ,/*t.remainSeconds*/)
-
                 if (t.remainTime <= 1) {
                     clearInterval(timerUpdate);
-                    //  console.log(finalMessage)
-
                     return res.json({ message: 'Ha finalizado la suscripción' });
-
-
                 }
                 if (t.remainTime > 1) {
                     clearInterval(timerUpdate);
                     res.json({ message: 'continua con la suscripción' })
                 }
-
             }, 1000);
-
-
         };
-        countdown(process.env.SUBSCRIPTION_END_DATE, '¡Ya empezó!');
-
+        countdown(SUBSCRIPTION_END_DATE, '¡Ya empezó!');
     }
 
 

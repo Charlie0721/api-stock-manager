@@ -1,16 +1,15 @@
 import { createPool } from 'mysql2/promise';
-import dotenv from 'dotenv';
-dotenv.config();
+import {DATABASE,HOST,PASSWORD,USER} from './config/constants';
 export async function connect() {
     const maxConnectionAttempts = 3;
 
     for (let attempt = 1; attempt <= maxConnectionAttempts; attempt++) {
         try {
             const connection = createPool({
-                host: process.env.HOST,
-                user: process.env.USER,
-                database: process.env.DATABASE,
-                password: process.env.PASSWORD,
+                host: HOST,
+                user: USER,
+                database: DATABASE,
+                password: PASSWORD,
                 connectionLimit: 50,
                 waitForConnections: true,
                 connectTimeout: 3000000,

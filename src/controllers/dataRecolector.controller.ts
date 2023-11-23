@@ -2,8 +2,7 @@ import { Request, Response } from 'express'
 import { connect } from '../database'
 import { ISearchByBarcodeToCollector } from '../interface/barcode.interface'
 import * as fsFiles from 'fs';
-import dotenv from 'dotenv';
-dotenv.config();
+import {DIRECTORYTOSAVE} from '../config/constants';
 export class DataCollector {
 
     /**
@@ -47,7 +46,7 @@ export class DataCollector {
             const dataToFiletext = barcode.join("")
             const dateNow = new Date()
             let dateGenerated = dateNow.getTime()
-            const directoryToSave = process.env.DIRECTORYTOSAVE
+            const directoryToSave = DIRECTORYTOSAVE
 
             fsFiles.writeFile(directoryToSave + '/inventario' + dateGenerated + '.txt', dataToFiletext, error => {
                 if (error) {
