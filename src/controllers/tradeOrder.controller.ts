@@ -4,32 +4,12 @@ import { ItradeOrderHeader } from '../interface/tradeOrder.interface'
 import { IcreateClient } from '../interface/createClient.interface'
 import { RowDataPacket } from 'mysql2';
 import { INeighborhoodsInterface } from '../interface/neighborhoods.interface'
+import { ResultSetHeader } from 'mysql2/promise';
+import { log } from 'console';
 
 export class TradeOrder {
 
-    /**Obtener el numero del pedido deacuerdo al almacén */
-
-    static getNumberOrder = async (req: Request, res: Response): Promise<Response> => {
-
-        try {
-            const conn = await connect();
-            const idalm = req.params.idalmacen;
-            const number = await conn.query(`SELECT
-        numero
-      FROM
-        pedidos
-      WHERE
-        idalmacen = ${idalm} AND numero > 0;`);
-            if (conn) {
-                await conn.end()
-            }
-            return res.json(number[0]);
-        } catch (error) {
-            console.log(error)
-            return res.status(500).json({ error: error })
-        }
-    }
-
+   
     /**Obtener productos activos */
     static getProducts = async (req: Request, res: Response) => {
         try {
@@ -175,45 +155,76 @@ export class TradeOrder {
             return res.status(404).json({ error: error })
         }
     }
-
-    /**Insertar la orden y el detalle */
-    static insertOrder = async (req: Request, res: Response) => {
-        try {
-            const pool = await connect();
-            const conn = await pool.getConnection();
-            try {
-                await conn.query(`START TRANSACTION`);
-                const newOrder: ItradeOrderHeader = req.body;
-
-                const [responseOrder] = await conn.query(`INSERT INTO pedidos (numero,idtercero,fecha,idvendedor,subtotal,valortotal,valimpuesto,valiva,valdescuentos,valretenciones,detalle,fechacrea,hora,plazo,idalmacen,estado,idsoftware)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal, newOrder.valimpuesto, newOrder.valiva, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle, newOrder.fechacrea, newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware]);
-                const result = Object.values(JSON.parse(JSON.stringify(responseOrder)));
-                const insertId = await conn.query(`SELECT LAST_INSERT_ID();`)
-                let destructuringInsertId = JSON.stringify(insertId[0])
-
-                if (destructuringInsertId) {
-
-                    newOrder.detpedidos.forEach(async (item) => {
-                        destructuringInsertId = item.idpedido
-                        await conn.query(`INSERT INTO detpedidos (idpedido,idproducto,cantidad,valorprod,descuento,porcdesc,codiva,porciva,ivaprod,costoprod,base,despachado)
-                               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`, [destructuringInsertId, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.porcdesc, item.codiva, item.porciva, item.ivaprod, item.costoprod, item.base, item.despachado]);
-                    })
-                } else {
-                    return res.status(400).json({ message: "id not found !!!" })
-                }
-                await conn.query(`COMMIT`);
-                if (responseOrder)
-                    return res.status(200).json({ id: destructuringInsertId, responseOrder, ...newOrder, });
-            } catch (error) {
-                await conn.query(`ROLLBACK`);
-                console.log(error);
-                return res.status(500).json({ error: error })
-            }
-        } catch (error) {
-            console.log(error)
-            return res.status(500).json({ error: error })
-        }
+  /** Obtener el número del pedido de acuerdo al almacén */
+static getNumberOrder = async (req: Request, res: Response): Promise<Response> => {
+    try {
+        const conn = await connect();
+        const idalm = req.params.idalmacen;
+        const [numberResult] = await conn.query<RowDataPacket[]>(`
+            SELECT COUNT(p1.numero) AS numero FROM pedidos p1 WHERE p1.idalmacen=? AND p1.numero > 0`,
+            [idalm]
+        );
+        const number = numberResult[0].numero || 0;
+        return res.json({ numero: number });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: error });
     }
+};
+
+/** Insertar la orden y el detalle */
+static insertOrder = async (req: Request, res: Response) => {
+    try {
+        const pool = await connect();
+        const conn = await pool.getConnection();
+        try {
+            await conn.query(`START TRANSACTION`);
+
+            const newOrder: ItradeOrderHeader = req.body;
+
+            const [responseOrder] = await conn.query<ResultSetHeader>(
+                `INSERT INTO pedidos (numero, idtercero, fecha, idvendedor, subtotal, valortotal, valimpuesto, valiva, valdescuentos, valretenciones, detalle, fechacrea, hora, plazo, idalmacen, estado, idsoftware)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    newOrder.numero, newOrder.idtercero, newOrder.fecha, newOrder.idvendedor, newOrder.subtotal, newOrder.valortotal,
+                    newOrder.valimpuesto, newOrder.valiva, newOrder.valdescuentos, newOrder.valretenciones, newOrder.detalle, newOrder.fechacrea,
+                    newOrder.hora, newOrder.plazo, newOrder.idalmacen, newOrder.estado, newOrder.idsoftware
+                ]
+            );
+
+            const orderId = responseOrder.insertId;
+                
+            if (orderId) {
+                const detpedidosPromises = newOrder.detpedidos.map(async (item) => {
+                    await conn.query(
+                        `INSERT INTO detpedidos (idpedido, idproducto, cantidad, valorprod, descuento, porcdesc, codiva, porciva, ivaprod, costoprod, base, despachado)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [orderId, item.idproducto, item.cantidad, item.valorprod, item.descuento, item.porcdesc, item.codiva, item.porciva,
+                            item.ivaprod, item.costoprod, item.base, item.despachado]
+                    );
+                });
+
+                await Promise.all(detpedidosPromises);
+            } else {
+                return res.status(400).json({ message: "id not found!!!" });
+            }
+
+            await conn.query(`COMMIT`);
+
+            return res.status(200).json({ id: orderId, responseOrder, ...newOrder, numero: newOrder.numero });
+        } catch (error) {
+            await conn.query(`ROLLBACK`);
+            console.error(error);
+            return res.status(500).json({ error: error });
+        } finally {
+            conn.release();
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: error });
+    }
+};
+
 
     /*obtener el id del ultimo pedido insertado*/
     static getIdTradeOrder = async (req: Request, res: Response): Promise<Response> => {
