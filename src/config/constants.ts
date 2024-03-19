@@ -9,4 +9,4 @@ export const DATABASE = 'empresa006'
 export const DIRECTORYTOSAVE = '/Users/Desarrollo Carlos/Documents/'
 
 //# Fecha de finalizacion de la suscripción
-export const SUBSCRIPTION_END_DATE= 'February 28 2024 12:00:00 GMT-0500'
+export const SUBSCRIPTION_END_DATE= 'February 28 2025 12:00:00 GMT-0500'

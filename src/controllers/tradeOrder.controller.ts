@@ -11,6 +11,76 @@ export class TradeOrder {
 
    
     /**Obtener productos activos */
+    // static getProducts = async (req: Request, res: Response) => {
+    //     try {
+    //       const conn = await connect();
+    //       const idalmacen = req.params.idalmacen;
+    //       const limit = Number(req.query.limit) || 2;
+    //       const page = Number(req.query.page) || 1;
+    //       const offset = (page - 1) * limit;
+    //       const descripcionString: string = req.query.descripcion as string;
+    //       const words = descripcionString.split(' ');
+    //       const barcode = req.query.barcode || '';
+    
+    //       if (words.length === 0) {
+    //         return res.status(400).json({ error: 'Debe proporcionar al menos una palabra para la búsqueda.' });
+    //       }
+    
+    //       const placeholders = Array(words.length).fill('p.descripcion LIKE ?').join(' AND ');
+    
+    //       const [products] = await conn.query<RowDataPacket[]>(`
+    //         SELECT
+    //           p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.precioespecial1, p.precioespecial2, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen, iv.porcentaje, ppc.cantidad, ppc.precio
+    //         FROM
+    //           productos p
+    //         LEFT JOIN inventario i ON p.idproducto = i.idproducto
+    //         LEFT JOIN almacenes alm ON i.idalmacen = alm.idalmacen
+    //         LEFT JOIN iva iv ON p.codiva = iv.codiva
+    //         LEFT JOIN barrasprod brp ON p.idproducto = brp.idproducto
+    //         LEFT JOIN prodprecioscant  ppc ON p.idproducto = ppc.idproducto
+    //         WHERE
+    //           i.idalmacen = ? AND p.estado = 1
+    //           AND (
+    //             ${placeholders}
+    //           )
+    //           AND (p.barcode LIKE ? OR brp.barcode LIKE ?)
+    //         ORDER BY
+    //           p.idproducto
+    //         LIMIT ? OFFSET ?
+    //       `, [idalmacen, ...words.map(word => `%${word}%`), `%${barcode}%`, `%${barcode}%`, limit, offset]);
+    
+    //       if (conn) {
+    //         await conn.end();
+    //       }
+    
+    //       const newProducts = products.map((product: any) => {
+    //         let baseValue = product.precioventa;
+    //         let taxValue = 0;
+    //         if (product.porcentaje !== 0) {
+    //           let porciva = 1 + (product.porcentaje / 100);
+    //           baseValue = product.precioventa / porciva;
+    //           taxValue = product.precioventa - baseValue;
+    //         }
+    //         return {
+    //           ...product,
+    //           baseValue,
+    //           taxValue,
+    //         };
+    //       });
+    
+    //       const totalItems = products.length;
+    //       const totalPages = Math.ceil(totalItems / limit);
+    
+    //       return res.json({
+    //         newProducts,
+    //         page: page, offset, limit,
+    //         totalPages: totalPages
+    //       });
+    //     } catch (error) {
+    //       console.log(error);
+    //       return res.status(500).json({ error: error });
+    //     }
+    //   }
     static getProducts = async (req: Request, res: Response) => {
         try {
           const conn = await connect();
@@ -21,13 +91,13 @@ export class TradeOrder {
           const descripcionString: string = req.query.descripcion as string;
           const words = descripcionString.split(' ');
           const barcode = req.query.barcode || '';
-    
+      
           if (words.length === 0) {
             return res.status(400).json({ error: 'Debe proporcionar al menos una palabra para la búsqueda.' });
           }
-    
+      
           const placeholders = Array(words.length).fill('p.descripcion LIKE ?').join(' AND ');
-    
+      
           const [products] = await conn.query<RowDataPacket[]>(`
             SELECT
               p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.precioespecial1, p.precioespecial2, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen, iv.porcentaje
@@ -43,44 +113,41 @@ export class TradeOrder {
                 ${placeholders}
               )
               AND (p.barcode LIKE ? OR brp.barcode LIKE ?)
+            GROUP BY
+              p.idproducto
             ORDER BY
               p.idproducto
             LIMIT ? OFFSET ?
           `, [idalmacen, ...words.map(word => `%${word}%`), `%${barcode}%`, `%${barcode}%`, limit, offset]);
-    
-          if (conn) {
-            await conn.end();
+      
+          for (const product of products) {
+            const [preciosPorVolumen] = await conn.query<RowDataPacket[]>(`
+              SELECT cantidad, precio FROM prodprecioscant WHERE idproducto = ? ORDER BY cantidad
+            `, [product.idproducto]);
+      
+            product.preciosPorVolumen = preciosPorVolumen;
           }
-    
-          const newProducts = products.map((product: any) => {
-            let baseValue = product.precioventa;
-            let taxValue = 0;
-            if (product.porcentaje !== 0) {
-              let porciva = 1 + (product.porcentaje / 100);
-              baseValue = product.precioventa / porciva;
-              taxValue = product.precioventa - baseValue;
-            }
-            return {
-              ...product,
-              baseValue,
-              taxValue,
-            };
-          });
-    
+      
+          await conn.end(); 
+      
           const totalItems = products.length;
           const totalPages = Math.ceil(totalItems / limit);
-    
+      
           return res.json({
-            newProducts,
-            page: page, offset, limit,
-            totalPages: totalPages
+            newProducts: products,
+            page,
+            offset,
+            limit,
+            totalPages
           });
         } catch (error) {
           console.log(error);
           return res.status(500).json({ error: error });
         }
       }
-
+      
+      
+      
 
     /**Obtener los almacenes  */
     static getWarehousestoOrders = async (req: Request, res: Response): Promise<Response> => {
