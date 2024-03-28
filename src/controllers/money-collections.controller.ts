@@ -1,0 +1,21 @@
+import { MoneyCollectionDto } from "../interface/money-collection.dto";
+import { MoneyCollectionService } from "../service/money-collections.service";
+import { Request, Response } from "express";
+const moneyCollectionService = new MoneyCollectionService();
+export class MoneyCollectionController {
+  static create = async (req: Request, res: Response) => {
+    const { Valor, Descripcion } = req.body;
+    const moneyCollectionDto = new MoneyCollectionDto(Valor, Descripcion);
+    try {
+      const response = await moneyCollectionService.create(moneyCollectionDto);
+
+      res.status(201).json({
+        message: "Money collection created successfully",
+        response,
+      });
+    } catch (error) {
+      console.error("Error creating money collection:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+}
