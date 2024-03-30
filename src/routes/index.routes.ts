@@ -114,4 +114,5 @@ router.get("/orders/countries", TradeOrder.getCountries);
 router.get("/orders/neighborhoods", TradeOrder.getNeighborhoods);
 router.post("/orders/neighborhoods", TradeOrder.createNeighborhoods);
 router.post("/money-collections", MoneyCollectionController.create);
+router.get("/money-collections/:IdRecaudo", MoneyCollectionController.findOne);
 export default router;

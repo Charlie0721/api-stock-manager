@@ -18,4 +18,20 @@ export class MoneyCollectionController {
       res.status(500).json({ message: "Internal server error" });
     }
   };
+
+  static findOne = async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.IdRecaudo);
+
+      const response = await moneyCollectionService.findOne(id);
+
+      res.status(200).json({
+        message: "data found satisfactorily",
+        response,
+      });
+    } catch (error) {
+      console.error("Error creating money collection:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
 }
