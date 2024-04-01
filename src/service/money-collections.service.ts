@@ -8,15 +8,20 @@ export class MoneyCollectionService {
     const conn = await connect();
     const value = moneyCollectionDto.getValor();
     const description = moneyCollectionDto.getDescripcion();
+    const email = moneyCollectionDto.getEmail();
 
     moneyCollectionDto.setValor(value);
     moneyCollectionDto.setDescripcion(description);
-
+    moneyCollectionDto.setEmail(email);
     try {
       const money = await conn.query<ResultSetHeader>(
-        `INSERT INTO recaudos_movil (Valor, Descripcion)
-        VALUES (?,?)`,
-        [moneyCollectionDto.getValor(), moneyCollectionDto.getDescripcion()]
+        `INSERT INTO recaudos_movil (Valor, Descripcion, eMail)
+        VALUES (?,?,?)`,
+        [
+          moneyCollectionDto.getValor(),
+          moneyCollectionDto.getDescripcion(),
+          moneyCollectionDto.getEmail(),
+        ]
       );
       const insertId = money[0].insertId;
 
@@ -38,12 +43,12 @@ export class MoneyCollectionService {
     try {
       const [empresaData] = await conn.query<RowDataPacket[]>(
         `SELECT nit, digito, direccion, telefono1
-        FROM empresa001.empresa`
+        FROM empresa`
       );
 
       const [recaudoData] = await conn.query<RowDataPacket[]>(
-        `SELECT IdRecaudo, Valor, Descripcion, Fecha_Recaudo
-        FROM empresa001.recaudos_movil
+        `SELECT IdRecaudo, Valor, Descripcion, Fecha_Recaudo, eMail
+        FROM recaudos_movil
         WHERE IdRecaudo = ?`,
         [idRecaudo]
       );
@@ -56,6 +61,7 @@ export class MoneyCollectionService {
         IdRecaudo: recaudoData[0]?.IdRecaudo,
         Valor: recaudoData[0]?.Valor,
         Descripcion: recaudoData[0]?.Descripcion,
+        eMail: recaudoData[0]?.eMail,
         Fecha_Tramite: recaudoData[0]?.Fecha_Recaudo,
       };
 

@@ -4,8 +4,8 @@ import { Request, Response } from "express";
 const moneyCollectionService = new MoneyCollectionService();
 export class MoneyCollectionController {
   static create = async (req: Request, res: Response) => {
-    const { Valor, Descripcion } = req.body;
-    const moneyCollectionDto = new MoneyCollectionDto(Valor, Descripcion);
+    const { Valor, Descripcion,eMail } = req.body;
+    const moneyCollectionDto = new MoneyCollectionDto(Valor, Descripcion,eMail);
     try {
       const response = await moneyCollectionService.create(moneyCollectionDto);
 
