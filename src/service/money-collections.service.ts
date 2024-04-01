@@ -3,7 +3,6 @@ import { MoneyCollectionDto } from "../interface/money-collection.dto";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { createTransport } from "nodemailer";
 import { USER_EMAIL, EMAIL_PASSWORD, SENDER_MAIL } from "../config/constants";
-import { response } from "express";
 const transporter = createTransport({
   host: "smtp.gmail.com",
   auth: {
