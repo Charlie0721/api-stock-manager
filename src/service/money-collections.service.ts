@@ -1,6 +1,16 @@
 import { connect } from "../database";
 import { MoneyCollectionDto } from "../interface/money-collection.dto";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { createTransport } from "nodemailer";
+import { USER_EMAIL, EMAIL_PASSWORD, SENDER_MAIL } from "../config/constants";
+import { response } from "express";
+const transporter = createTransport({
+  host: "smtp.gmail.com",
+  auth: {
+    user: USER_EMAIL,
+    pass: EMAIL_PASSWORD,
+  },
+});
 export class MoneyCollectionService {
   constructor() {}
 
@@ -52,7 +62,7 @@ export class MoneyCollectionService {
         WHERE IdRecaudo = ?`,
         [idRecaudo]
       );
-
+      let email: string = recaudoData[0]?.eMail;
       const combinedData = {
         nit: empresaData[0]?.nit,
         digito: empresaData[0]?.digito,
@@ -61,14 +71,40 @@ export class MoneyCollectionService {
         IdRecaudo: recaudoData[0]?.IdRecaudo,
         Valor: recaudoData[0]?.Valor,
         Descripcion: recaudoData[0]?.Descripcion,
-        eMail: recaudoData[0]?.eMail,
+        eMail: email,
         Fecha_Tramite: recaudoData[0]?.Fecha_Recaudo,
       };
-
+      await this.sendEmailToCustomer(combinedData, email);
       return combinedData;
     } catch (error) {
       console.log(error);
       return error;
     }
+  }
+  /**Enviar mail con el recaudo generado*/
+  private async sendEmailToCustomer(moneyCollection: {}, email: string) {
+    const detailMoneyHtml = this.fotmatDetailMoneyCollection(moneyCollection);
+
+    const responseEmail = await transporter.sendMail({
+      to: email,
+      from: SENDER_MAIL,
+      subject:
+        "Recaudo generado desde aplicación Stock manager de Conexion POS",
+      html: `Recaudo generado con la siguiente información: 
+      ${detailMoneyHtml}
+    `,
+    });
+    return responseEmail;
+  }
+
+  private fotmatDetailMoneyCollection(moneyCollection: any): string {
+    let detailMoneyHtml = "<p>";
+    for (const key in moneyCollection) {
+      if (moneyCollection.hasOwnProperty(key)) {
+        detailMoneyHtml += `<strong>${key}:</strong> ${moneyCollection[key]}<br> `;
+      }
+    }
+    detailMoneyHtml += "</p>";
+    return detailMoneyHtml;
   }
 }
