@@ -15,18 +15,24 @@ export class MoneyCollectionService {
 
   async create(moneyCollectionDto: MoneyCollectionDto) {
     const conn = await connect();
+    const salerId = moneyCollectionDto.getIdVendedor();
+    const customerId = moneyCollectionDto.getIdCliente();
     const value = moneyCollectionDto.getValor();
     const description = moneyCollectionDto.getDescripcion();
     const email = moneyCollectionDto.getEmail();
 
+    moneyCollectionDto.setIdVendedor(salerId);
+    moneyCollectionDto.setIdCliente(customerId);
     moneyCollectionDto.setValor(value);
     moneyCollectionDto.setDescripcion(description);
     moneyCollectionDto.setEmail(email);
     try {
       const money = await conn.query<ResultSetHeader>(
-        `INSERT INTO recaudos_movil (Valor, Descripcion, eMail)
-        VALUES (?,?,?)`,
+        `INSERT INTO recaudos_movil (IdVendedor,IdCliente,Valor, Descripcion, eMail)
+        VALUES (?,?,?,?,?)`,
         [
+          moneyCollectionDto.getIdVendedor(),
+          moneyCollectionDto.getIdCliente(),
           moneyCollectionDto.getValor(),
           moneyCollectionDto.getDescripcion(),
           moneyCollectionDto.getEmail(),
@@ -56,10 +62,26 @@ export class MoneyCollectionService {
       );
 
       const [recaudoData] = await conn.query<RowDataPacket[]>(
-        `SELECT IdRecaudo, Valor, Descripcion, Fecha_Recaudo, eMail
+        `SELECT IdRecaudo,IdVendedor,IdCliente, Valor, Descripcion, Fecha_Recaudo, eMail
         FROM recaudos_movil
         WHERE IdRecaudo = ?`,
         [idRecaudo]
+      );
+      let sellerId: number = recaudoData[0]?.IdVendedor;
+      let customerId: number = recaudoData[0]?.IdCliente;
+
+      const [sellerData] = await conn.query<RowDataPacket[]>(
+        `
+      SELECT  idtercero, nombres, apellidos
+      FROM terceros WHERE idtercero=?
+      `,
+        [sellerId]
+      );
+
+      const [customerData] = await conn.query<RowDataPacket[]>(
+        `  SELECT  idtercero,nit, digito, nombres, apellidos
+      FROM terceros WHERE idtercero=?`,
+        [customerId]
       );
       let email: string = recaudoData[0]?.eMail;
       const combinedData = {
@@ -68,8 +90,13 @@ export class MoneyCollectionService {
         direccion: empresaData[0]?.direccion,
         telefono1: empresaData[0]?.telefono1,
         IdRecaudo: recaudoData[0]?.IdRecaudo,
+        encargado_cobro:
+          sellerData[0]?.nombres + " " + sellerData[0]?.apellidos,
+        identificacion: customerData[0]?.nit,
         Valor: recaudoData[0]?.Valor,
         Descripcion: recaudoData[0]?.Descripcion,
+        cliente: customerData[0]?.nombres + " " + customerData[0]?.apellidos,
+        nit_cliente: customerData[0]?.nit + "-" + customerData[0]?.digito,
         eMail: email,
         Fecha_Tramite: recaudoData[0]?.Fecha_Recaudo,
       };

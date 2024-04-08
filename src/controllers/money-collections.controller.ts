@@ -4,8 +4,8 @@ import { Request, Response } from "express";
 const moneyCollectionService = new MoneyCollectionService();
 export class MoneyCollectionController {
   static create = async (req: Request, res: Response) => {
-    const { Valor, Descripcion,eMail } = req.body;
-    const moneyCollectionDto = new MoneyCollectionDto(Valor, Descripcion,eMail);
+    const {IdVendedor, IdCliente, Valor, Descripcion,eMail } = req.body;
+    const moneyCollectionDto = new MoneyCollectionDto(IdVendedor, IdCliente,Valor, Descripcion,eMail);
     try {
       const response = await moneyCollectionService.create(moneyCollectionDto);
 
@@ -18,7 +18,6 @@ export class MoneyCollectionController {
       res.status(500).json({ message: "Internal server error" });
     }
   };
-
   static findOne = async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.IdRecaudo);

@@ -1,12 +1,36 @@
 export class MoneyCollectionDto {
+  private IdVendedor: number;
+  private IdCliente: number;
   private Valor: number;
   private Descripcion: string;
   private eMail: string;
 
-  constructor(Valor: number, Descripcion: string, eMail: string) {
+  constructor(
+    IdVendedor: number,
+    IdCliente: number,
+    Valor: number,
+    Descripcion: string,
+    eMail: string
+  ) {
     this.Valor = Valor;
     this.Descripcion = Descripcion;
     this.eMail = eMail;
+    this.IdVendedor = IdVendedor;
+    this.IdCliente = IdCliente;
+  }
+
+  getIdVendedor(): number {
+    return this.IdVendedor;
+  }
+  setIdVendedor(idVendedor: number) {
+    this.IdVendedor = idVendedor;
+  }
+
+  getIdCliente(): number {
+    return this.IdCliente;
+  }
+  setIdCliente(idCliente: number) {
+    this.IdCliente = idCliente;
   }
 
   getValor(): number {
