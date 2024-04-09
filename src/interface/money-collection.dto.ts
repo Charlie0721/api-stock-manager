@@ -3,14 +3,14 @@ export class MoneyCollectionDto {
   private IdCliente: number;
   private Valor: number;
   private Descripcion: string;
-  private eMail: string;
+  private eMail?: string | undefined;
 
   constructor(
     IdVendedor: number,
     IdCliente: number,
     Valor: number,
     Descripcion: string,
-    eMail: string
+    eMail: string | undefined
   ) {
     this.Valor = Valor;
     this.Descripcion = Descripcion;
@@ -49,11 +49,11 @@ export class MoneyCollectionDto {
     this.Descripcion = nuevaDescripcion;
   }
 
-  getEmail(): string {
+  getEmail(): string | undefined {
     return this.eMail;
   }
 
-  setEmail(newEmail: string) {
+  setEmail(newEmail: string | undefined) {
     this.eMail = newEmail;
   }
 }

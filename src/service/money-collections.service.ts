@@ -100,7 +100,9 @@ export class MoneyCollectionService {
         eMail: email,
         Fecha_Tramite: recaudoData[0]?.Fecha_Recaudo,
       };
-      await this.sendEmailToCustomer(combinedData, email);
+      if (email && email.trim() !== "") {
+        await this.sendEmailToCustomer(combinedData, email);
+      }
       return combinedData;
     } catch (error) {
       console.log(error);
