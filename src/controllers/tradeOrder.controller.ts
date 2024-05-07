@@ -285,8 +285,8 @@ export class TradeOrder {
         const newOrder: ItradeOrderHeader = req.body;
 
         const [responseOrder] = await conn.query<ResultSetHeader>(
-          `INSERT INTO pedidos (numero, idtercero, fecha, idvendedor, subtotal, valortotal, valimpuesto, valiva, valdescuentos, valretenciones, detalle, fechacrea, hora, plazo, idalmacen, estado, idsoftware)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO pedidos (numero, idtercero, fecha, idvendedor, subtotal, valortotal, valimpuesto, valiva, valdescuentos, valretenciones, detalle, fechacrea, hora, plazo, idalmacen, estado, fechavenc, idsoftware)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`,
           [
             newOrder.numero,
             newOrder.idtercero,
@@ -304,6 +304,7 @@ export class TradeOrder {
             newOrder.plazo,
             newOrder.idalmacen,
             newOrder.estado,
+            newOrder.fechavenc,
             newOrder.idsoftware,
           ]
         );

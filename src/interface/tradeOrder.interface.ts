@@ -15,6 +15,7 @@ export interface ItradeOrderHeader {
     detalle?: string;
     fechacrea:string;
     hora:string;
+    fechavenc:string;
     idsoftware: number;
     plazo: number;
     detpedidos: ItradeOrderDetail[];
