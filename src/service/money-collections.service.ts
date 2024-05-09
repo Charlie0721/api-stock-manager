@@ -71,27 +71,31 @@ export class MoneyCollectionService {
       );
 
       if (pendingPortfolio.length === 0) {
-        throw { status: 404, message: 'No accounts receivable found for the customer' };
+        return {
+          status: 404,
+          message: "No accounts receivable found for the customer",
+        };
       }
-
       let quotaValue: number = 0;
       let totalPortfolio: number = 0;
       let balance: number = 0;
       let accountsReceivable: any[] = [];
-      const newPortfolio = pendingPortfolio.map((portfolio) => {
+      pendingPortfolio.forEach((portfolio) => {
         totalPortfolio += portfolio.valcuota;
         balance += portfolio.credito;
         quotaValue = totalPortfolio - balance;
         accountsReceivable.push(portfolio);
-        return {
-          totalPortfolio,
-          balance,
-          quotaValue,
-        };
       });
+
+      const portfolio = {
+        totalPortfolio,
+        balance,
+        quotaValue
+      };
+
       return {
         accountsReceivable,
-        portfolio: newPortfolio,
+        portfolio,
       };
     } catch (error) {
       console.log(error);
