@@ -10,6 +10,7 @@ const transporter = createTransport({
     pass: EMAIL_PASSWORD,
   },
 });
+
 export class MoneyCollectionService {
   constructor() {}
 
@@ -68,6 +69,10 @@ export class MoneyCollectionService {
       `,
         [customerId]
       );
+
+      if (pendingPortfolio.length === 0) {
+        throw { status: 404, message: 'No accounts receivable found for the customer' };
+      }
 
       let quotaValue: number = 0;
       let totalPortfolio: number = 0;

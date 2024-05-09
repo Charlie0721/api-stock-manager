@@ -35,6 +35,7 @@ export class MoneyCollectionController {
         await moneyCollectionService.checkAccountsReceivableByCustomer(
           customerId
         );
+        
       res.status(200).json({
         message: "data found satisfactorily",
         response,
