@@ -52,6 +52,48 @@ export class MoneyCollectionService {
     }
   }
 
+  /**Consultar cartera por clientes*/
+
+  async checkAccountsReceivableByCustomer(customerId: number) {
+    const conn = await connect();
+    try {
+      const [pendingPortfolio] = await conn.query<RowDataPacket[]>(
+        `SELECT  
+      c.tipodoc, c.valcuota, c.tipocartera, f.numero,c.credito
+      FROM cartera c
+     LEFT JOIN facturas f ON (c.iddocumento = f.idfactura)
+      
+     WHERE c.idtercero = ? AND c.tipocartera=1 AND c.valcuota != c.credito
+     
+      `,
+        [customerId]
+      );
+
+      let quotaValue: number = 0;
+      let totalPortfolio: number = 0;
+      let balance: number = 0;
+      let accountsReceivable: any[] = [];
+      const newPortfolio = pendingPortfolio.map((portfolio) => {
+        totalPortfolio += portfolio.valcuota;
+        balance += portfolio.credito;
+        quotaValue = totalPortfolio - balance;
+        accountsReceivable.push(portfolio);
+        return {
+          totalPortfolio,
+          balance,
+          quotaValue,
+        };
+      });
+      return {
+        accountsReceivable,
+        portfolio: newPortfolio,
+      };
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
   async findOne(idRecaudo: number) {
     const conn = await connect();
 
@@ -109,6 +151,7 @@ export class MoneyCollectionService {
       return error;
     }
   }
+
   /**Enviar mail con el recaudo generado*/
   private async sendEmailToCustomer(moneyCollection: {}, email: string) {
     const detailMoneyHtml = this.fotmatDetailMoneyCollection(moneyCollection);
