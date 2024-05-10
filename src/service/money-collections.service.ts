@@ -90,7 +90,7 @@ export class MoneyCollectionService {
       const portfolio = {
         totalPortfolio,
         balance,
-        quotaValue
+        quotaValue,
       };
 
       return {
