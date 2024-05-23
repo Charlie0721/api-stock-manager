@@ -69,7 +69,7 @@ router
   .get(TradeOrder.ordersByWarehouseAndNumber);
 router.route("/trade-order/create-client").post(TradeOrder.createClient);
 router.route("/data-collector").post(DataCollector.searchProductBarcode);
-router.route("/data-collector/create-file").post(DataCollector.createTextFile);
+router.route("/data-collector/create-file/:idalmacen").post(DataCollector.createTextFile);
 router
   .route("/data-collector/transfers")
   .get(DataCollector.searchWarehousesActive);
