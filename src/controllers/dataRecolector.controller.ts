@@ -17,7 +17,15 @@ export class DataCollector {
       const conn = await connect();
       let barcodeFound: ISearchByBarcodeToCollector = req.body.barcode;
       const response = await conn.query(
-        `SELECT descripcion, precioventa, barcode FROM productos WHERE barcode =${barcodeFound}`
+        `SELECT descripcion, precioventa, barrasprod.barcode, productos.barcode
+        FROM
+           productos
+           LEFT JOIN 
+           barrasprod ON productos.idproducto = barrasprod.idproducto
+        WHERE
+             productos.barcode = ${barcodeFound} OR barrasprod.barcode = ${barcodeFound}
+        GROUP BY
+            productos.idproducto`
       );
       if (conn) {
         conn.end();
