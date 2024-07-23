@@ -18,6 +18,7 @@ import { ProductClass } from "../controllers/createProducts.controller";
 import { CheckSalesOfTheDay } from "../controllers/SalesOfTheDay";
 import { UsersController } from "../controllers/users.controller";
 import { MoneyCollectionController } from "../controllers/money-collections.controller";
+import { StockManagerParamsController } from "../controllers/stock_manager_params.controller";
 const router = Router();
 router.route("/search-prices").post(SearchPrices);
 router.route("/all-products").get(Product.allProducts);
@@ -69,7 +70,9 @@ router
   .get(TradeOrder.ordersByWarehouseAndNumber);
 router.route("/trade-order/create-client").post(TradeOrder.createClient);
 router.route("/data-collector").post(DataCollector.searchProductBarcode);
-router.route("/data-collector/create-file/:idalmacen").post(DataCollector.createTextFile);
+router
+  .route("/data-collector/create-file/:idalmacen")
+  .post(DataCollector.createTextFile);
 router
   .route("/data-collector/transfers")
   .get(DataCollector.searchWarehousesActive);
@@ -114,6 +117,12 @@ router.get("/orders/countries", TradeOrder.getCountries);
 router.get("/orders/neighborhoods", TradeOrder.getNeighborhoods);
 router.post("/orders/neighborhoods", TradeOrder.createNeighborhoods);
 router.post("/money-collections", MoneyCollectionController.create);
-router.get("/money-collections/customer/:idtercero", MoneyCollectionController.checkAccountsReceivableByCustomer);
+router.get(
+  "/money-collections/customer/:idtercero",
+  MoneyCollectionController.checkAccountsReceivableByCustomer
+);
 router.get("/money-collections/:IdRecaudo", MoneyCollectionController.findOne);
+router.post("/stock-manager-params/:uuid", StockManagerParamsController.create);
+router.get("/stock-manager-params/:Uuid_Usuario", StockManagerParamsController.getOne);
+
 export default router;

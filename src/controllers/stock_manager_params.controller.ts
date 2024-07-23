@@ -1,0 +1,44 @@
+import { Request, Response } from "express";
+import { StocManagerParamsService } from "../service/stock_manager-params.service";
+import { StockManagerParamsDto } from "../interface/stock_manager-params.dto";
+
+const stockManagerParamsService = new StocManagerParamsService();
+export class StockManagerParamsController {
+  static create = async (req: Request, res: Response) => {
+    const { uuid } = req.params;
+
+    const { Id_Vendedor, Id_Cliente, Id_Almacen } = req.body;
+
+    const stockManagerParamsDto = new StockManagerParamsDto(
+      Id_Vendedor,
+      Id_Cliente,
+      Id_Almacen
+    );
+
+    try {
+      const response = await stockManagerParamsService.create(
+        uuid,
+        stockManagerParamsDto
+      );
+      res.status(201).json({
+        message: "stock-manager params created successfully",
+        response,
+      });
+    } catch (error) {
+      console.error("Error creating params:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+
+  static getOne = async (req: Request, res: Response) => {
+    try {
+      const uuid = req.params.Uuid_Usuario;
+
+      const responseParams = await stockManagerParamsService.getOne(uuid);
+      res.status(200).json(responseParams);
+    } catch (error) {
+      console.error("Error creating params:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+}
