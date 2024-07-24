@@ -39,18 +39,21 @@ export class StocManagerParamsService {
     const conn = await connect();
 
     try {
-      const [_params] = await conn.query<RowDataPacket[]>(
-        `SELECT Id_Vendedor, Id_Cliente,Id_Almacen
-            FROM param_stock_manager psm
-            WHERE psm.Uuid_Usuario =?
-            `,
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT Id_Vendedor, Id_Cliente, Id_Almacen
+              FROM param_stock_manager psm
+              WHERE psm.Uuid_Usuario = ?`,
         [uuid]
       );
 
-      return _params[0];
+      if (rows.length > 0) {
+        return rows[0];
+      } else {
+        return { status: 404, message: "Not found" };
+      }
     } catch (error) {
       console.log(error);
-      return error;
+      throw error;
     }
   }
 }
