@@ -32,6 +32,8 @@ export class StocManagerParamsService {
     } catch (error) {
       console.log(error);
       return error;
+    } finally {
+      if (conn) await conn.end();
     }
   }
 
@@ -54,6 +56,10 @@ export class StocManagerParamsService {
     } catch (error) {
       console.log(error);
       throw error;
+    } finally {
+      if (conn) {
+        await conn.end();
+      }
     }
   }
 }

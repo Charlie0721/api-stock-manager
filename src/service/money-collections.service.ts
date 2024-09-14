@@ -100,6 +100,8 @@ export class MoneyCollectionService {
     } catch (error) {
       console.log(error);
       return error;
+    } finally {
+      if (conn) await conn.end();
     }
   }
 
@@ -158,6 +160,8 @@ export class MoneyCollectionService {
     } catch (error) {
       console.log(error);
       return error;
+    } finally {
+      if (conn) await conn.end();
     }
   }
 

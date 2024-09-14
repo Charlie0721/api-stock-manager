@@ -13,8 +13,8 @@ export class DataCollector {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       let barcodeFound: ISearchByBarcodeToCollector = req.body.barcode;
       const response = await conn.query(
         `SELECT descripcion, precioventa, barrasprod.barcode, productos.barcode
@@ -27,13 +27,15 @@ export class DataCollector {
         GROUP BY
             productos.idproducto`
       );
-      if (conn) {
-        conn.end();
-      }
+
       return res.status(200).json(response[0]);
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        conn.end();
+      }
     }
   };
 
@@ -136,26 +138,27 @@ export class DataCollector {
     }
   };
   static searchWarehousesActive = async (req: Request, res: Response) => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const response = await conn.query(
         `SELECT idalmacen, nomalmacen from almacenes WHERE activo=1`
       );
-      if (conn) {
-        await conn.end();
-      }
       if (response.length > 0) {
         return res.json(response[0]);
       }
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        await conn.end();
+      }
     }
   };
 
   private async getWareHouseName(warehouseId: number): Promise<string> {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const [rows] = await conn.query<RowDataPacket[]>(
         `SELECT nomalmacen FROM almacenes WHERE idalmacen=?`,
         [warehouseId]
@@ -173,6 +176,10 @@ export class DataCollector {
     } catch (error) {
       console.log(error);
       return `Error al buscar el almacen ${error}`;
+    } finally {
+      if (conn) {
+        await conn.end();
+      }
     }
   }
 }

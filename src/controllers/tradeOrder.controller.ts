@@ -5,83 +5,11 @@ import { IcreateClient } from "../interface/createClient.interface";
 import { RowDataPacket } from "mysql2";
 import { INeighborhoodsInterface } from "../interface/neighborhoods.interface";
 import { ResultSetHeader } from "mysql2/promise";
-import { log } from "console";
 
 export class TradeOrder {
-  /**Obtener productos activos */
-  // static getProducts = async (req: Request, res: Response) => {
-  //     try {
-  //       const conn = await connect();
-  //       const idalmacen = req.params.idalmacen;
-  //       const limit = Number(req.query.limit) || 2;
-  //       const page = Number(req.query.page) || 1;
-  //       const offset = (page - 1) * limit;
-  //       const descripcionString: string = req.query.descripcion as string;
-  //       const words = descripcionString.split(' ');
-  //       const barcode = req.query.barcode || '';
-
-  //       if (words.length === 0) {
-  //         return res.status(400).json({ error: 'Debe proporcionar al menos una palabra para la búsqueda.' });
-  //       }
-
-  //       const placeholders = Array(words.length).fill('p.descripcion LIKE ?').join(' AND ');
-
-  //       const [products] = await conn.query<RowDataPacket[]>(`
-  //         SELECT
-  //           p.idproducto, p.costo, p.ultcosto, p.codiva, p.precioventa, p.precioespecial1, p.precioespecial2, p.descripcion, p.barcode, p.codigo, i.cantidad, alm.nomalmacen, iv.porcentaje, ppc.cantidad, ppc.precio
-  //         FROM
-  //           productos p
-  //         LEFT JOIN inventario i ON p.idproducto = i.idproducto
-  //         LEFT JOIN almacenes alm ON i.idalmacen = alm.idalmacen
-  //         LEFT JOIN iva iv ON p.codiva = iv.codiva
-  //         LEFT JOIN barrasprod brp ON p.idproducto = brp.idproducto
-  //         LEFT JOIN prodprecioscant  ppc ON p.idproducto = ppc.idproducto
-  //         WHERE
-  //           i.idalmacen = ? AND p.estado = 1
-  //           AND (
-  //             ${placeholders}
-  //           )
-  //           AND (p.barcode LIKE ? OR brp.barcode LIKE ?)
-  //         ORDER BY
-  //           p.idproducto
-  //         LIMIT ? OFFSET ?
-  //       `, [idalmacen, ...words.map(word => `%${word}%`), `%${barcode}%`, `%${barcode}%`, limit, offset]);
-
-  //       if (conn) {
-  //         await conn.end();
-  //       }
-
-  //       const newProducts = products.map((product: any) => {
-  //         let baseValue = product.precioventa;
-  //         let taxValue = 0;
-  //         if (product.porcentaje !== 0) {
-  //           let porciva = 1 + (product.porcentaje / 100);
-  //           baseValue = product.precioventa / porciva;
-  //           taxValue = product.precioventa - baseValue;
-  //         }
-  //         return {
-  //           ...product,
-  //           baseValue,
-  //           taxValue,
-  //         };
-  //       });
-
-  //       const totalItems = products.length;
-  //       const totalPages = Math.ceil(totalItems / limit);
-
-  //       return res.json({
-  //         newProducts,
-  //         page: page, offset, limit,
-  //         totalPages: totalPages
-  //       });
-  //     } catch (error) {
-  //       console.log(error);
-  //       return res.status(500).json({ error: error });
-  //     }
-  //   }
   static getProducts = async (req: Request, res: Response) => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const idalmacen = req.params.idalmacen;
       const limit = Number(req.query.limit) || 2;
       const page = Number(req.query.page) || 1;
@@ -91,11 +19,9 @@ export class TradeOrder {
       const barcode = req.query.barcode || "";
 
       if (words.length === 0) {
-        return res
-          .status(400)
-          .json({
-            error: "Debe proporcionar al menos una palabra para la búsqueda.",
-          });
+        return res.status(400).json({
+          error: "Debe proporcionar al menos una palabra para la búsqueda.",
+        });
       }
 
       const placeholders = Array(words.length)
@@ -133,11 +59,6 @@ export class TradeOrder {
           offset,
         ]
       );
-
-      if (conn) {
-        await conn.end();
-      }
-
       const newProducts = products.map((product: any) => {
         let baseValue = product.precioventa;
         let taxValue = 0;
@@ -166,6 +87,10 @@ export class TradeOrder {
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        await conn.end();
+      }
     }
   };
 
@@ -174,18 +99,20 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const warehouses = await conn.query(
         `SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`
       );
-      if (conn) {
-        await conn.end();
-      }
+
       return res.json(warehouses[0]);
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        await conn.end();
+      }
     }
   };
 
@@ -194,8 +121,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const limit = Number(req.query.limit) || 10;
       const page = Number(req.query.page) || 1;
       const offset = (page - 1) * limit;
@@ -214,9 +141,7 @@ export class TradeOrder {
           LIMIT ? OFFSET ? `,
         [`%${nombres}%`, `%${nit}%`, limit, offset]
       );
-      if (conn) {
-        await conn.end();
-      }
+
       const totalItems = customer.length;
       const totalPages = Math.ceil(totalItems / limit);
       return res.status(200).json({
@@ -229,6 +154,10 @@ export class TradeOrder {
     } catch (error) {
       console.log(error);
       return res.status(404).json({ error: error });
+    } finally {
+      if (conn) {
+        await conn.end();
+      }
     }
   };
   /**obtener empleados (vendedores) */
@@ -236,21 +165,22 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const employee = await conn.query(`SELECT
                    idtercero, nombres, nit
                  FROM
                   terceros
                  WHERE 
                  empleado = 1 AND otros = 1;`);
-      if (conn) {
-        await conn.end();
-      }
       return res.status(200).json({ employee: employee[0] });
     } catch (error) {
       console.log(error);
       return res.status(404).json({ error: error });
+    } finally {
+      if (conn) {
+        await conn.end();
+      }
     }
   };
   /** Obtener el número del pedido de acuerdo al almacén */
@@ -276,9 +206,9 @@ export class TradeOrder {
 
   /** Insertar la orden y el detalle */
   static insertOrder = async (req: Request, res: Response) => {
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
-      const pool = await connect();
-      const conn = await pool.getConnection();
       try {
         await conn.query(`START TRANSACTION`);
 
@@ -340,14 +270,12 @@ export class TradeOrder {
 
         await conn.query(`COMMIT`);
 
-        return res
-          .status(200)
-          .json({
-            id: orderId,
-            responseOrder,
-            ...newOrder,
-            numero: newOrder.numero,
-          });
+        return res.status(200).json({
+          id: orderId,
+          responseOrder,
+          ...newOrder,
+          numero: newOrder.numero,
+        });
       } catch (error) {
         await conn.query(`ROLLBACK`);
         console.error(error);
@@ -358,6 +286,10 @@ export class TradeOrder {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        await conn.end();
+      }
     }
   };
 
@@ -366,20 +298,21 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const idTrade = await conn.query(`SELECT
         idpedido
       FROM
         pedidos;`);
-      if (conn) {
-        conn.end();
-        console.log("La conexión se cerró correctamente.");
-      }
       return res.status(200).json(idTrade[0]);
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        conn.end();
+        console.log("La conexión se cerró correctamente.");
+      }
     }
   };
 
@@ -390,8 +323,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const numero = req.params.numero;
       const idAlm = req.params.idalmacen;
       const response = await conn.query(`SELECT
@@ -408,6 +341,11 @@ export class TradeOrder {
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        conn.end();
+        console.log("La conexión se cerró correctamente.");
+      }
     }
   };
 
@@ -416,8 +354,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const client: IcreateClient = req.body;
 
       const [customerFound] = await conn.query<RowDataPacket[]>(
@@ -490,8 +428,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const [departments] = await conn.query<RowDataPacket[]>(`SELECT 
             iddepto, codigodepto, nomdepartamento,idpais,valorimportacion
             FROM departamentos `);
@@ -505,6 +443,10 @@ export class TradeOrder {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        conn.end();
+      }
     }
   };
 
@@ -512,8 +454,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const conn = await connect();
     try {
-      const conn = await connect();
       const [neighborhoods] = await conn.query<RowDataPacket[]>(`SELECT
             b.idbarrio, b.nombarrio, b.idmunicipio,b.codzona
             FROM 
@@ -528,6 +470,10 @@ export class TradeOrder {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        conn.end();
+      }
     }
   };
 
