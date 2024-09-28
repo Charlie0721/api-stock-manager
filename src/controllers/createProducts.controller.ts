@@ -11,9 +11,10 @@ export class ProductClass {
    * conocer el numero de movimiento de inventario
    */
   static getCode = async (req: Request, res: Response) => {
-    let conn;
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
-      conn = await connect();
       const codigo = req.query.codigo;
       const responseCode = await conn.query(`SELECT
                 MAX(p.codigo) AS ultimo_codigo,
@@ -35,16 +36,16 @@ export class ProductClass {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        conn.end();
+        conn.release();
       }
     }
   };
   static getStructure = async (req: Request, res: Response) => {
     //Obtener datos de estructura
+    const pool = await connect();
+    const conn = await pool.getConnection();
 
     try {
-      const conn = await connect();
-
       const codeStructure =
         await conn.query(`  SELECT est.idnivel,est.numcaracteres, est.caractacum, est.caractnivel
               FROM
@@ -56,6 +57,10 @@ export class ProductClass {
       }
     } catch (error) {
       return res.json({ error: error });
+    } finally {
+      if (conn) {
+        conn.release();
+      }
     }
   };
   static getProductsLevels = async (req: Request, res: Response) => {
@@ -63,7 +68,9 @@ export class ProductClass {
      * Seleccionar Lineas
      */
 
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
       const limit = Number(req.query.limit) || 10;
       const page = Number(req.query.page) || 1;
@@ -95,7 +102,7 @@ export class ProductClass {
     } catch (error) {
       return res.json({ error: error });
     } finally {
-      if (conn) await conn.end();
+      if (conn) conn.release();
     }
   };
 
@@ -106,9 +113,10 @@ export class ProductClass {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    let conn;
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
-      conn = await connect();
       const taxes = await conn.query(`SELECT
             i.codiva, i.nombre, i.porcentaje
         FROM
@@ -121,7 +129,7 @@ export class ProductClass {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
@@ -132,9 +140,10 @@ export class ProductClass {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    let conn;
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
-      conn = await connect();
       const taxes = await conn.query(`
             SELECT
               i.codiva, i.nombre, i.porcentaje
@@ -148,7 +157,7 @@ export class ProductClass {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
@@ -159,9 +168,10 @@ export class ProductClass {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    let conn;
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
-      conn = await connect();
       const response = await conn.query(`SELECT u.idunmedida, u.nommedida
             FROM medidas u`);
       if (response.length > 0) {
@@ -177,7 +187,7 @@ export class ProductClass {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
@@ -186,7 +196,9 @@ export class ProductClass {
    * Obtener el id del ultimo producto creado
    */
   static getIdProduct = async (req: Request, res: Response) => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
       const productId = await conn.query(`SELECT  
            MAX(p.idproducto) AS ultimo_id
@@ -203,12 +215,14 @@ export class ProductClass {
       console.log(error);
       return res.status(500).json({ error: error });
     } finally {
-      if (conn) await conn.end();
+      if (conn) conn.release();
     }
   };
 
   static searchExistingBarcode = async (req: Request, res: Response) => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
       const barcode = req.query.barcode || "";
       const [rows] = await conn.query(`SELECT
@@ -239,73 +253,70 @@ export class ProductClass {
       console.log(error);
       return res.status(500).json({ error: error });
     } finally {
-      if (conn) await conn.end();
+      if (conn) conn.release();
     }
   };
   /**
    * Crear el producto
    */
   static saveProduct = async (req: Request, res: Response) => {
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
-      const pool = await connect();
-      const conn = await pool.getConnection();
-      try {
-        await conn.query(`START TRANSACTION`);
-        const product: ProductsI = req.body;
-        const [newProductResponse] = await conn.query(
-          `INSERT INTO productos 
+      await conn.query(`START TRANSACTION`);
+      const product: ProductsI = req.body;
+      const [newProductResponse] = await conn.query(
+        `INSERT INTO productos 
                     (codigo,barcode,descripcion,idunmedida,codiva, tipo,codivaesp1,codivaesp2,costo, ultcosto, precioventa,
                     estado,compuesto,idareaserv,codivacomp,agruparalfacturar) 
                     values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-          [
-            product.codigo,
-            product.barcode,
-            product.descripcion,
-            product.idunmedida,
-            product.codiva,
-            product.tipo,
-            product.codivaesp1,
-            product.codivaesp2,
-            product.costo,
-            product.ultcosto,
-            product.precioventa,
-            product.estado,
-            product.compuesto,
-            product.idareaserv,
-            product.codivacomp,
-            product.agruparalfacturar,
-          ]
-        );
+        [
+          product.codigo,
+          product.barcode,
+          product.descripcion,
+          product.idunmedida,
+          product.codiva,
+          product.tipo,
+          product.codivaesp1,
+          product.codivaesp2,
+          product.costo,
+          product.ultcosto,
+          product.precioventa,
+          product.estado,
+          product.compuesto,
+          product.idareaserv,
+          product.codivacomp,
+          product.agruparalfacturar,
+        ]
+      );
 
-        const result = Object.values(
-          JSON.parse(JSON.stringify(newProductResponse))
-        );
-        product.estproductos.forEach(async (item) => {
-          result[2] = item.idproducto;
+      const result = Object.values(
+        JSON.parse(JSON.stringify(newProductResponse))
+      );
+      product.estproductos.forEach(async (item) => {
+        result[2] = item.idproducto;
 
-          await conn.query(
-            `INSERT INTO estproductos (idproducto, idregistro, idnivel)
+        await conn.query(
+          `INSERT INTO estproductos (idproducto, idregistro, idnivel)
                         values (?,?,?)`,
-            [result[2], item.idregistro, item.idnivel]
-          );
-        });
-        await conn.query(`COMMIT`);
+          [result[2], item.idregistro, item.idnivel]
+        );
+      });
+      await conn.query(`COMMIT`);
 
-        if (result) {
-          return res
-            .status(200)
-            .json({ id: result[2], newProductResponse, ...product });
-        } else {
-          return res.status(400).json({ message: "id not found !!!" });
-        }
-      } catch (error) {
-        await conn.query(`ROLLBACK`);
-        console.log(error);
-        return res.status(500).json({ error: error });
+      if (result) {
+        return res
+          .status(200)
+          .json({ id: result[2], newProductResponse, ...product });
+      } else {
+        return res.status(400).json({ message: "id not found !!!" });
       }
     } catch (error) {
+      await conn.query(`ROLLBACK`);
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      conn.release();
     }
   };
 }

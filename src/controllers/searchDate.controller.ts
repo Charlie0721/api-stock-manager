@@ -3,7 +3,8 @@ import { connect } from "../database";
 import { IFechas } from "../interface/fechas.interface";
 
 export const SearchPrices = async (req: Request, res: Response) => {
-  const conn = await connect();
+  const pool = await connect();
+  const conn = await pool.getConnection();
 
   try {
     const newPrices: IFechas = req.body;
@@ -19,7 +20,7 @@ export const SearchPrices = async (req: Request, res: Response) => {
     console.log(err);
   } finally {
     if (conn) {
-      await conn.end();
+      conn.release();
     }
   }
 };

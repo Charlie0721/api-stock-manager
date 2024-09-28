@@ -117,9 +117,9 @@ export class TransfersToCxPos {
 
   /**Enviar traslados */
   static sendTransfer = async (req: Request, res: Response) => {
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
-      const pool = await connect();
-      const conn = await pool.getConnection();
       try {
         await conn.query(`START TRANSACTION`);
         const newTransfer: ITransfer = req.body;
@@ -178,6 +178,10 @@ export class TransfersToCxPos {
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        conn.release();
+      }
     }
   };
   /*obtener el id del ultimo traslado insertado*/
@@ -185,7 +189,9 @@ export class TransfersToCxPos {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
       const idTrade = await conn.query(`SELECT
             idtraslado
@@ -197,7 +203,7 @@ export class TransfersToCxPos {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };

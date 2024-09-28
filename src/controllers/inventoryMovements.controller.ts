@@ -153,60 +153,56 @@ export class InventoryMovements {
    * Guardar el movimiento de inventario
    */
   static saveInventoryMovement = async (req: Request, res: Response) => {
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
-      const pool = await connect();
-      const conn = await pool.getConnection();
-      try {
-        const pool = await connect();
-        const conn = await pool.getConnection();
-        await conn.query(`START TRANSACTION`);
-        const newInventoryMovement: IIngMovInvEntrada = req.body;
-        const [responseInventoryMovement] = await conn.query(
-          `INSERT INTO ctrajustes (fecha,idalmacen,detalle,estado,idconceptajuste,numero,idusuario,idtercero)
+      await conn.query(`START TRANSACTION`);
+      const newInventoryMovement: IIngMovInvEntrada = req.body;
+      const [responseInventoryMovement] = await conn.query(
+        `INSERT INTO ctrajustes (fecha,idalmacen,detalle,estado,idconceptajuste,numero,idusuario,idtercero)
                 VALUES (?,?,?,?,?,?,?,?)`,
+        [
+          newInventoryMovement.fecha,
+          newInventoryMovement.idalmacen,
+          newInventoryMovement.detalle,
+          newInventoryMovement.estado,
+          newInventoryMovement.idconceptajuste,
+          newInventoryMovement.numero,
+          newInventoryMovement.idusuario,
+          newInventoryMovement.idtercero,
+        ]
+      );
+      const result = Object.values(
+        JSON.parse(JSON.stringify(responseInventoryMovement))
+      );
+
+      newInventoryMovement.ajustesinv.forEach(async (item) => {
+        result[2] = item.idajuste;
+        await conn.query(
+          `INSERT INTO ajustesinv (idajuste,idproducto,idalmacen,entrada,salida) 
+                    VALUES (?,?,?,?,?)`,
           [
-            newInventoryMovement.fecha,
-            newInventoryMovement.idalmacen,
-            newInventoryMovement.detalle,
-            newInventoryMovement.estado,
-            newInventoryMovement.idconceptajuste,
-            newInventoryMovement.numero,
-            newInventoryMovement.idusuario,
-            newInventoryMovement.idtercero,
+            item.idajuste,
+            item.idproducto,
+            item.idalmacen,
+            item.entrada,
+            item.salida,
           ]
         );
-        const result = Object.values(
-          JSON.parse(JSON.stringify(responseInventoryMovement))
-        );
-
-        newInventoryMovement.ajustesinv.forEach(async (item) => {
-          result[2] = item.idajuste;
-          await conn.query(
-            `INSERT INTO ajustesinv (idajuste,idproducto,idalmacen,entrada,salida) 
-                    VALUES (?,?,?,?,?)`,
-            [
-              item.idajuste,
-              item.idproducto,
-              item.idalmacen,
-              item.entrada,
-              item.salida,
-            ]
-          );
-        });
-        await conn.query(`COMMIT`);
-        if (responseInventoryMovement)
-          return res
-            .status(200)
-            .json({ responseInventoryMovement, ...newInventoryMovement });
-        conn.end();
-      } catch (error) {
-        await conn.query(`ROLLBACK`);
-        console.log(error);
-        return res.status(500).json({ error: error });
-      }
+      });
+      await conn.query(`COMMIT`);
+      if (responseInventoryMovement)
+        return res
+          .status(200)
+          .json({ responseInventoryMovement, ...newInventoryMovement });
+      conn.end();
     } catch (error) {
+      await conn.query(`ROLLBACK`);
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      conn.release();
     }
   };
 
@@ -215,8 +211,10 @@ export class InventoryMovements {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
-      const conn = await connect();
       const idPurshable = await conn.query(`SELECT
             idajuste
           FROM
@@ -228,6 +226,8 @@ export class InventoryMovements {
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) conn.release();
     }
   };
 }

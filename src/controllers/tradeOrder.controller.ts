@@ -8,7 +8,8 @@ import { ResultSetHeader } from "mysql2/promise";
 
 export class TradeOrder {
   static getProducts = async (req: Request, res: Response) => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
       const idalmacen = req.params.idalmacen;
       const limit = Number(req.query.limit) || 2;
@@ -89,7 +90,7 @@ export class TradeOrder {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        await conn.release();
       }
     }
   };
@@ -99,7 +100,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
       const warehouses = await conn.query(
         `SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`
@@ -111,7 +113,7 @@ export class TradeOrder {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
@@ -121,7 +123,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
       const limit = Number(req.query.limit) || 10;
       const page = Number(req.query.page) || 1;
@@ -156,7 +159,7 @@ export class TradeOrder {
       return res.status(404).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
@@ -165,7 +168,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
       const employee = await conn.query(`SELECT
                    idtercero, nombres, nit
@@ -179,7 +183,7 @@ export class TradeOrder {
       return res.status(404).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
@@ -288,7 +292,7 @@ export class TradeOrder {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
@@ -298,7 +302,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
       const idTrade = await conn.query(`SELECT
         idpedido
@@ -310,7 +315,7 @@ export class TradeOrder {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        conn.end();
+        conn.release();
         console.log("La conexión se cerró correctamente.");
       }
     }
@@ -323,7 +328,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
       const numero = req.params.numero;
       const idAlm = req.params.idalmacen;
@@ -343,7 +349,7 @@ export class TradeOrder {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        conn.end();
+        conn.release();
         console.log("La conexión se cerró correctamente.");
       }
     }
@@ -428,7 +434,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
       const [departments] = await conn.query<RowDataPacket[]>(`SELECT 
             iddepto, codigodepto, nomdepartamento,idpais,valorimportacion
@@ -445,7 +452,7 @@ export class TradeOrder {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        conn.end();
+        conn.release();
       }
     }
   };
@@ -454,7 +461,8 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
     try {
       const [neighborhoods] = await conn.query<RowDataPacket[]>(`SELECT
             b.idbarrio, b.nombarrio, b.idmunicipio,b.codzona
@@ -472,7 +480,7 @@ export class TradeOrder {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        conn.end();
+        conn.release();
       }
     }
   };

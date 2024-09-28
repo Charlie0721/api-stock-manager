@@ -8,7 +8,9 @@ export class UsersController {
     req: Request,
     res: Response
   ): Promise<Response | any> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
       const user: SigninInterface = req.body;
       const { uuid, email, password, userType } = user;
@@ -43,7 +45,7 @@ export class UsersController {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
@@ -53,7 +55,9 @@ export class UsersController {
   };
 
   static loginUSer = async (req: Request, res: Response): Promise<Response> => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     const user: LoginInterface = req.body;
     const { email, password } = user;
 
@@ -89,7 +93,7 @@ export class UsersController {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };

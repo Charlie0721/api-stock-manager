@@ -7,7 +7,9 @@ interface IsearchSales {
 
 export class CheckSalesOfTheDay {
   static checkSales = async (req: Request, res: Response) => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
       const consultationDate: IsearchSales = req.body.initialDate;
       const [rows] =
@@ -53,13 +55,15 @@ export class CheckSalesOfTheDay {
       return res.status(500).json({ error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
 
   static getSalesByWarehouse = async (req: Request, res: Response) => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
       let date: string = req.params.fecha;
       let warehouseId: string = req.params.idalmacen;
@@ -87,13 +91,15 @@ export class CheckSalesOfTheDay {
       return res.status(500).json({ error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
 
   static detailOfSalesOfTheDay = async (req: Request, res: Response) => {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
       const number = req.params.numero;
       const warehouseId = req.params.idalmacen;
@@ -126,7 +132,7 @@ export class CheckSalesOfTheDay {
       return res.status(500).json({ error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };

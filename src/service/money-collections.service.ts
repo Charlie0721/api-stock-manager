@@ -15,7 +15,8 @@ export class MoneyCollectionService {
   constructor() {}
 
   async create(moneyCollectionDto: MoneyCollectionDto) {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
     const salerId = moneyCollectionDto.getIdVendedor();
     const customerId = moneyCollectionDto.getIdCliente();
     const value = moneyCollectionDto.getValor();
@@ -50,13 +51,17 @@ export class MoneyCollectionService {
     } catch (error) {
       console.log(error);
       return error;
+    } finally {
+      if (conn) conn.release();
     }
   }
 
   /**Consultar cartera por clientes*/
 
   async checkAccountsReceivableByCustomer(customerId: number) {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     try {
       const [pendingPortfolio] = await conn.query<RowDataPacket[]>(
         `SELECT  
@@ -101,12 +106,13 @@ export class MoneyCollectionService {
       console.log(error);
       return error;
     } finally {
-      if (conn) await conn.end();
+      if (conn) conn.release();
     }
   }
 
   async findOne(idRecaudo: number) {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
 
     try {
       const [empresaData] = await conn.query<RowDataPacket[]>(
@@ -161,7 +167,7 @@ export class MoneyCollectionService {
       console.log(error);
       return error;
     } finally {
-      if (conn) await conn.end();
+      if (conn) conn.release();
     }
   }
 

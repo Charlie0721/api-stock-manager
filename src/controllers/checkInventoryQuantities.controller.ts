@@ -6,7 +6,9 @@ import { RowDataPacket } from "mysql2/promise";
  */
 
 export const inventoryQuantities = async (req: Request, res: Response) => {
-  const conn = await connect();
+  const pool = await connect();
+  const conn = await pool.getConnection();
+
   try {
     const limit = Number(req.query.limit) || 10;
     const page = Number(req.query.page) || 1;
@@ -48,7 +50,7 @@ export const inventoryQuantities = async (req: Request, res: Response) => {
     return res.status(500).json(error);
   } finally {
     if (conn) {
-      await conn.end();
+      conn.release();
     }
   }
 };

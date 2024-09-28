@@ -4,7 +4,9 @@ import { IEditProduct } from "../interface/updateProduct.interface";
 import { IAddBarcodes } from "../interface/barcode.interface";
 
 export const UpdateProduct = async (req: Request, res: Response) => {
-  const conn = await connect();
+  const pool = await connect();
+  const conn = await pool.getConnection();
+
   try {
     const id: number = parseInt(req.params.idproducto);
     const editProduct: IEditProduct = req.body;
@@ -20,12 +22,14 @@ export const UpdateProduct = async (req: Request, res: Response) => {
     console.log(err);
   } finally {
     if (conn) {
-      conn.end();
+      conn.release();
     }
   }
 };
 export const getProductById = async (req: Request, res: Response) => {
-  const conn = await connect();
+  const pool = await connect();
+  const conn = await pool.getConnection();
+
   try {
     const id: string = req.params.idproducto;
     const ProductByID =
@@ -38,12 +42,14 @@ export const getProductById = async (req: Request, res: Response) => {
     console.log(error);
   } finally {
     if (conn) {
-      await conn.end();
+      conn.release();
     }
   }
 };
 export const addMultipleBarcodes = async (req: Request, res: Response) => {
-  const conn = await connect();
+  const pool = await connect();
+  const conn = await pool.getConnection();
+
   try {
     const id: string = req.params.idproducto;
     const barcode: IAddBarcodes = req.body;
@@ -82,6 +88,6 @@ export const addMultipleBarcodes = async (req: Request, res: Response) => {
       error: error,
     });
   } finally {
-    if (conn) await conn.end();
+    if (conn) conn.release();
   }
 };

@@ -9,7 +9,9 @@ export class StocManagerParamsService {
     uuid: string,
     stockManagerParamsDto: StockManagerParamsDto
   ) {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
+
     const salerId = stockManagerParamsDto.getIdVendedor();
     const customerId = stockManagerParamsDto.getIdCliente();
     const warehouseId = stockManagerParamsDto.getIdAlmacen();
@@ -33,12 +35,13 @@ export class StocManagerParamsService {
       console.log(error);
       return error;
     } finally {
-      if (conn) await conn.end();
+      if (conn) conn.release();
     }
   }
 
   public async getOne(uuid: string) {
-    const conn = await connect();
+    const pool = await connect();
+    const conn = await pool.getConnection();
 
     try {
       const [rows] = await conn.query<RowDataPacket[]>(
@@ -58,7 +61,7 @@ export class StocManagerParamsService {
       throw error;
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   }
