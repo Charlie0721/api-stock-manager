@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { ItradeOrderHeader } from "../interface/tradeOrder.interface";
 import { IcreateClient } from "../interface/createClient.interface";
 import { RowDataPacket } from "mysql2";
@@ -8,9 +8,9 @@ import { ResultSetHeader } from "mysql2/promise";
 
 export class TradeOrder {
   static getProducts = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
     try {
+      conn = await getConnection();
       const idalmacen = req.params.idalmacen;
       const limit = Number(req.query.limit) || 2;
       const page = Number(req.query.page) || 1;
@@ -100,8 +100,7 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    const conn = await getConnection();
     try {
       const warehouses = await conn.query(
         `SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`
@@ -123,8 +122,7 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    const conn = await getConnection();
     try {
       const limit = Number(req.query.limit) || 10;
       const page = Number(req.query.page) || 1;
@@ -168,9 +166,9 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
     try {
+      conn = await getConnection();
       const employee = await conn.query(`SELECT
                    idtercero, nombres, nit
                  FROM
@@ -192,8 +190,9 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    let conn;
     try {
-      const conn = await connect();
+      conn = await getConnection();
       const idalm = req.params.idalmacen;
       const [numberResult] = await conn.query<RowDataPacket[]>(
         `
@@ -209,102 +208,102 @@ export class TradeOrder {
   };
 
   /** Insertar la orden y el detalle */
-  static insertOrder = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+  static insertOrder = async (
+    req: Request,
+    res: Response
+  ): Promise<Response> => {
+    // Obtener pool de conexiones
+    const conn = await getConnection(); // Obtener una conexión
     try {
-      try {
-        await conn.query(`START TRANSACTION`);
+      await conn.query(`START TRANSACTION`); // Iniciar transacción
 
-        const newOrder: ItradeOrderHeader = req.body;
+      const newOrder: ItradeOrderHeader = req.body;
 
-        const [responseOrder] = await conn.query<ResultSetHeader>(
-          `INSERT INTO pedidos (numero, idtercero, fecha, idvendedor, subtotal, valortotal, valimpuesto, valiva, valdescuentos, valretenciones, detalle, fechacrea, hora, plazo, idalmacen, estado, fechavenc, idsoftware)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`,
+      // Insertar en la tabla pedidos
+      const [responseOrder] = await conn.query<ResultSetHeader>(
+        `INSERT INTO pedidos (numero, idtercero, fecha, idvendedor, subtotal, valortotal, valimpuesto, valiva, valdescuentos, valretenciones, detalle, fechacrea, hora, plazo, idalmacen, estado, fechavenc, idsoftware)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          newOrder.numero,
+          newOrder.idtercero,
+          newOrder.fecha,
+          newOrder.idvendedor,
+          newOrder.subtotal,
+          newOrder.valortotal,
+          newOrder.valimpuesto,
+          newOrder.valiva,
+          newOrder.valdescuentos,
+          newOrder.valretenciones,
+          newOrder.detalle,
+          newOrder.fechacrea,
+          newOrder.hora,
+          newOrder.plazo,
+          newOrder.idalmacen,
+          newOrder.estado,
+          newOrder.fechavenc,
+          newOrder.idsoftware,
+        ]
+      );
+
+      const orderId = responseOrder.insertId; // Obtener ID del pedido insertado
+
+      if (!orderId) {
+        await conn.query(`ROLLBACK`); // Si no se pudo insertar el pedido, hacer rollback
+        return res
+          .status(400)
+          .json({ message: "No se pudo insertar la orden." });
+      }
+
+      // Insertar los detalles del pedido
+      const detpedidosPromises = newOrder.detpedidos.map((item) =>
+        conn.query(
+          `INSERT INTO detpedidos (idpedido, idproducto, cantidad, valorprod, descuento, porcdesc, codiva, porciva, ivaprod, costoprod, base, despachado)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
-            newOrder.numero,
-            newOrder.idtercero,
-            newOrder.fecha,
-            newOrder.idvendedor,
-            newOrder.subtotal,
-            newOrder.valortotal,
-            newOrder.valimpuesto,
-            newOrder.valiva,
-            newOrder.valdescuentos,
-            newOrder.valretenciones,
-            newOrder.detalle,
-            newOrder.fechacrea,
-            newOrder.hora,
-            newOrder.plazo,
-            newOrder.idalmacen,
-            newOrder.estado,
-            newOrder.fechavenc,
-            newOrder.idsoftware,
+            orderId,
+            item.idproducto,
+            item.cantidad,
+            item.valorprod,
+            item.descuento,
+            item.porcdesc,
+            item.codiva,
+            item.porciva,
+            item.ivaprod,
+            item.costoprod,
+            item.base,
+            item.despachado,
           ]
-        );
+        )
+      );
 
-        const orderId = responseOrder.insertId;
+      await Promise.all(detpedidosPromises);
 
-        if (orderId) {
-          const detpedidosPromises = newOrder.detpedidos.map(async (item) => {
-            await conn.query(
-              `INSERT INTO detpedidos (idpedido, idproducto, cantidad, valorprod, descuento, porcdesc, codiva, porciva, ivaprod, costoprod, base, despachado)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              [
-                orderId,
-                item.idproducto,
-                item.cantidad,
-                item.valorprod,
-                item.descuento,
-                item.porcdesc,
-                item.codiva,
-                item.porciva,
-                item.ivaprod,
-                item.costoprod,
-                item.base,
-                item.despachado,
-              ]
-            );
-          });
+      await conn.query(`COMMIT`);
 
-          await Promise.all(detpedidosPromises);
-        } else {
-          return res.status(400).json({ message: "id not found!!!" });
-        }
-
-        await conn.query(`COMMIT`);
-
-        return res.status(200).json({
-          id: orderId,
-          responseOrder,
-          ...newOrder,
-          numero: newOrder.numero,
-        });
-      } catch (error) {
-        await conn.query(`ROLLBACK`);
-        console.error(error);
-        return res.status(500).json({ error: error });
-      } finally {
-        conn.release();
-      }
+      return res.status(200).json({
+        id: orderId,
+        responseOrder,
+        ...newOrder,
+        numero: newOrder.numero,
+      });
     } catch (error) {
+      await conn.query(`ROLLBACK`);
       console.error(error);
-      return res.status(500).json({ error: error });
+      return res
+        .status(500)
+        .json({ error: "Error al insertar la orden", details: error });
     } finally {
-      if (conn) {
-        conn.release();
-      }
+      conn.release();
     }
   };
-
   /*obtener el id del ultimo pedido insertado*/
   static getIdTradeOrder = async (
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
     try {
+      conn = await getConnection();
       const idTrade = await conn.query(`SELECT
         idpedido
       FROM
@@ -328,9 +327,9 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
     try {
+      conn = await getConnection();
       const numero = req.params.numero;
       const idAlm = req.params.idalmacen;
       const response = await conn.query(`SELECT
@@ -360,8 +359,9 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+    let conn;
     try {
+      conn = await getConnection();
       const client: IcreateClient = req.body;
 
       const [customerFound] = await conn.query<RowDataPacket[]>(
@@ -394,8 +394,9 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    let conn;
     try {
-      const conn = await connect();
+      conn = await getConnection();
       const [countries] = await conn.query<RowDataPacket[]>(`SELECT 
             idpais, nompais, codpais
             FROM paises `);
@@ -413,8 +414,9 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    let conn;
     try {
-      const conn = await connect();
+      conn = await getConnection();
       const [municipalities] = await conn.query<RowDataPacket[]>(`SELECT 
             idmunicipio, nommunicipio, iddepto,codmunicipio
             FROM municipios `);
@@ -434,9 +436,9 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
     try {
+      conn = await getConnection();
       const [departments] = await conn.query<RowDataPacket[]>(`SELECT 
             iddepto, codigodepto, nomdepartamento,idpais,valorimportacion
             FROM departamentos `);
@@ -461,9 +463,9 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
     try {
+      conn = await getConnection();
       const [neighborhoods] = await conn.query<RowDataPacket[]>(`SELECT
             b.idbarrio, b.nombarrio, b.idmunicipio,b.codzona
             FROM 
@@ -492,8 +494,9 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    let conn;
     try {
-      const conn = await connect();
+      conn = await getConnection();
       const neighborhood: INeighborhoodsInterface = req.body;
       const [neighborhoods] = await conn.query(
         `INSERT INTO

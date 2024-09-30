@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { ISearchByBarcodeToCollector } from "../interface/barcode.interface";
 import * as fsFiles from "fs";
 import { DIRECTORYTOSAVE } from "../config/constants";
@@ -13,10 +13,10 @@ export class DataCollector {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       let barcodeFound: ISearchByBarcodeToCollector = req.body.barcode;
       const response = await conn.query(
         `SELECT descripcion, precioventa, barrasprod.barcode, productos.barcode
@@ -140,10 +140,10 @@ export class DataCollector {
     }
   };
   static searchWarehousesActive = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const response = await conn.query(
         `SELECT idalmacen, nomalmacen from almacenes WHERE activo=1`
       );
@@ -161,10 +161,10 @@ export class DataCollector {
   };
 
   private async getWareHouseName(warehouseId: number): Promise<string> {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const [rows] = await conn.query<RowDataPacket[]>(
         `SELECT nomalmacen FROM almacenes WHERE idalmacen=?`,
         [warehouseId]

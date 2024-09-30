@@ -1,15 +1,15 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { RowDataPacket } from "mysql2/promise";
 /**
  * Traer productos con cantidades
  */
 
 export const inventoryQuantities = async (req: Request, res: Response) => {
-  const pool = await connect();
-  const conn = await pool.getConnection();
+ let conn;
 
   try {
+    conn= await getConnection();
     const limit = Number(req.query.limit) || 10;
     const page = Number(req.query.page) || 1;
     const offset = (page - 1) * limit;

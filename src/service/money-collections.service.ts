@@ -1,4 +1,4 @@
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { MoneyCollectionDto } from "../interface/money-collection.dto";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { createTransport } from "nodemailer";
@@ -15,8 +15,7 @@ export class MoneyCollectionService {
   constructor() {}
 
   async create(moneyCollectionDto: MoneyCollectionDto) {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    const conn = await getConnection();
     const salerId = moneyCollectionDto.getIdVendedor();
     const customerId = moneyCollectionDto.getIdCliente();
     const value = moneyCollectionDto.getValor();
@@ -59,10 +58,11 @@ export class MoneyCollectionService {
   /**Consultar cartera por clientes*/
 
   async checkAccountsReceivableByCustomer(customerId: number) {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
+
       const [pendingPortfolio] = await conn.query<RowDataPacket[]>(
         `SELECT  
       c.tipodoc, c.valcuota, c.tipocartera, f.numero,c.credito
@@ -111,10 +111,10 @@ export class MoneyCollectionService {
   }
 
   async findOne(idRecaudo: number) {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const [empresaData] = await conn.query<RowDataPacket[]>(
         `SELECT nit, digito, direccion, telefono1
         FROM empresa`

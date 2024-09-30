@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 
 export class Product {
   static allProducts = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+ let conn;
 
     try {
+      conn = await getConnection();
       const limit = Number(req.query.limit) || 10;
       const page = Number(req.query.page) || 1;
       const offset = (page - 1) * limit;

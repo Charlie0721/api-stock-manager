@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import {
   ProductStructureI,
   ProductsI,
@@ -11,10 +11,10 @@ export class ProductClass {
    * conocer el numero de movimiento de inventario
    */
   static getCode = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const codigo = req.query.codigo;
       const responseCode = await conn.query(`SELECT
                 MAX(p.codigo) AS ultimo_codigo,
@@ -42,10 +42,10 @@ export class ProductClass {
   };
   static getStructure = async (req: Request, res: Response) => {
     //Obtener datos de estructura
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const codeStructure =
         await conn.query(`  SELECT est.idnivel,est.numcaracteres, est.caractacum, est.caractnivel
               FROM
@@ -68,10 +68,10 @@ export class ProductClass {
      * Seleccionar Lineas
      */
 
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const limit = Number(req.query.limit) || 10;
       const page = Number(req.query.page) || 1;
       const offset = (page - 1) * limit;
@@ -113,10 +113,10 @@ export class ProductClass {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const taxes = await conn.query(`SELECT
             i.codiva, i.nombre, i.porcentaje
         FROM
@@ -140,10 +140,10 @@ export class ProductClass {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const taxes = await conn.query(`
             SELECT
               i.codiva, i.nombre, i.porcentaje
@@ -168,10 +168,10 @@ export class ProductClass {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const response = await conn.query(`SELECT u.idunmedida, u.nommedida
             FROM medidas u`);
       if (response.length > 0) {
@@ -196,10 +196,10 @@ export class ProductClass {
    * Obtener el id del ultimo producto creado
    */
   static getIdProduct = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const productId = await conn.query(`SELECT  
            MAX(p.idproducto) AS ultimo_id
            FROM productos p`);
@@ -220,10 +220,10 @@ export class ProductClass {
   };
 
   static searchExistingBarcode = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const barcode = req.query.barcode || "";
       const [rows] = await conn.query(`SELECT
            p.descripcion, p.precioventa,  p.idproducto, barr.barcode, p.barcode
@@ -260,8 +260,7 @@ export class ProductClass {
    * Crear el producto
    */
   static saveProduct = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    const conn = await getConnection();
     try {
       await conn.query(`START TRANSACTION`);
       const product: ProductsI = req.body;

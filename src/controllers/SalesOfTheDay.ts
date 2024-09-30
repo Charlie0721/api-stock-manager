@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 
 interface IsearchSales {
   initialDate: string;
@@ -7,10 +7,10 @@ interface IsearchSales {
 
 export class CheckSalesOfTheDay {
   static checkSales = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const consultationDate: IsearchSales = req.body.initialDate;
       const [rows] =
         await conn.query(`SELECT   a.fecha, a.idalmacen, a.prodvendid, e.subtot, e.ivaimp, a.costoacum, e.sumdesc, e.total, e.retencion, e.cantfact, f.valordev, e.valpropina, e.total + IF(ISNULL(e.valpropina), 0, e.valpropina) AS totalconprop, almd.nomalmacen, e.otrosimpuestos, e.impuestoinc
@@ -61,10 +61,10 @@ export class CheckSalesOfTheDay {
   };
 
   static getSalesByWarehouse = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       let date: string = req.params.fecha;
       let warehouseId: string = req.params.idalmacen;
 
@@ -97,10 +97,10 @@ export class CheckSalesOfTheDay {
   };
 
   static detailOfSalesOfTheDay = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const number = req.params.numero;
       const warehouseId = req.params.idalmacen;
 

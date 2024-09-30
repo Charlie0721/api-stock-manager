@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { IEditProduct } from "../interface/updateProduct.interface";
 import { IAddBarcodes } from "../interface/barcode.interface";
 
 export const UpdateProduct = async (req: Request, res: Response) => {
-  const pool = await connect();
-  const conn = await pool.getConnection();
+let conn;
 
   try {
+    conn = await getConnection();
     const id: number = parseInt(req.params.idproducto);
     const editProduct: IEditProduct = req.body;
     const productUpdated = await conn.query(
@@ -27,10 +27,10 @@ export const UpdateProduct = async (req: Request, res: Response) => {
   }
 };
 export const getProductById = async (req: Request, res: Response) => {
-  const pool = await connect();
-  const conn = await pool.getConnection();
+let conn;
 
   try {
+    conn = await getConnection();
     const id: string = req.params.idproducto;
     const ProductByID =
       await conn.query(`SELECT productos.idproducto, productos.barcode, productos.costo, productos.ultcosto, 
@@ -47,10 +47,10 @@ export const getProductById = async (req: Request, res: Response) => {
   }
 };
 export const addMultipleBarcodes = async (req: Request, res: Response) => {
-  const pool = await connect();
-  const conn = await pool.getConnection();
+ let conn;
 
   try {
+    conn = await getConnection();
     const id: string = req.params.idproducto;
     const barcode: IAddBarcodes = req.body;
     const [rows] = await conn.query(`SELECT

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { SigninInterface, LoginInterface } from "../interface/users.interface";
 import * as bcrypt from "bcrypt";
 import { RowDataPacket } from "mysql2/promise";
@@ -8,10 +8,10 @@ export class UsersController {
     req: Request,
     res: Response
   ): Promise<Response | any> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const user: SigninInterface = req.body;
       const { uuid, email, password, userType } = user;
       const hashedPassword = await this.hashPassword(password);
@@ -55,13 +55,13 @@ export class UsersController {
   };
 
   static loginUSer = async (req: Request, res: Response): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     const user: LoginInterface = req.body;
     const { email, password } = user;
 
     try {
+      conn = await getConnection();
       const [userFound] = await conn.query<RowDataPacket[]>(
         `
                 SELECT * FROM users_stock_manager WHERE email=?            

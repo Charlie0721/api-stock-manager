@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { IHeaderPurchases } from "../interface/recordPurchases.interface";
 
 export class ChargePurchases {
@@ -7,8 +7,9 @@ export class ChargePurchases {
    * Traer datos basicos de productos activos
    */
   static activeProductsToPurchases = async (req: Request, res: Response) => {
-    const conn = await connect();
+    let conn;
     try {
+      conn = await getConnection();
       const limit = Number(req.query.limit) || 2;
       const page = Number(req.query.page) || 1;
       const offset = (page - 1) * limit;
@@ -60,7 +61,8 @@ export class ChargePurchases {
     res: Response
   ): Promise<Response> => {
     try {
-      const conn = await connect();
+      let conn;
+      conn = await getConnection();
       const idalm = req.params.idalmacen;
       const response = await conn.query(`SELECT
             numero
@@ -85,18 +87,21 @@ export class ChargePurchases {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    let conn;
     try {
-      const conn = await connect();
+      conn = await getConnection();
       const warehouses = await conn.query(
         `SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`
       );
-      if (conn) {
-        await conn.end();
-      }
+
       return res.json(warehouses[0]);
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        conn.release();
+      }
     }
   };
 
@@ -108,10 +113,10 @@ export class ChargePurchases {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const suppliers = await conn.query(
         `SELECT idtercero, nombres, nit FROM terceros WHERE proveedor = 1`
       );
@@ -131,10 +136,10 @@ export class ChargePurchases {
    */
 
   static getIva = async (req: Request, res: Response): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
       const taxes = await conn.query(`SELECT
             codiva, nombre, porcentaje
         FROM
@@ -156,12 +161,10 @@ export class ChargePurchases {
    * Guardar la compra
    */
   static savePurchase = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    const conn = await getConnection();
 
     try {
-      const pool = await connect();
-      const conn = await pool.getConnection();
+      const conn = await getConnection();
       await conn.query(`START TRANSACTION`);
       const newPurshase: IHeaderPurchases = req.body;
       const [responsePurchases] = await conn.query(
@@ -217,10 +220,11 @@ export class ChargePurchases {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
+
       const idPurshable = await conn.query(`SELECT
         idcompra
       FROM

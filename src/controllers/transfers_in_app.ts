@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { ITransfer } from "../interface/transfers.interface";
 
 export class TransfersToCxPos {
@@ -8,8 +8,9 @@ export class TransfersToCxPos {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+let conn;
     try {
+      conn= await getConnection();
       const originNumbreTransfer = await conn.query(`SELECT
               COUNT(numtrasladoorigen) as result
             FROM
@@ -33,8 +34,9 @@ export class TransfersToCxPos {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+  let conn;
     try {
+      conn= await getConnection();
       const warehouses = await conn.query(
         `SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`
       );
@@ -44,7 +46,7 @@ export class TransfersToCxPos {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        conn.end();
+        conn.release();
       }
     }
   };
@@ -55,8 +57,9 @@ export class TransfersToCxPos {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const conn = await connect();
+   let conn;
     try {
+      conn= await getConnection();
       const idalmacen: string = req.params.idalmacen;
 
       const limit = Number(req.query.limit) || 2;
@@ -110,15 +113,15 @@ export class TransfersToCxPos {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        await conn.release();
       }
     }
   };
 
   /**Enviar traslados */
   static sendTransfer = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+ 
+    const conn = await getConnection();
     try {
       try {
         await conn.query(`START TRANSACTION`);
@@ -189,10 +192,10 @@ export class TransfersToCxPos {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+   let conn;
 
     try {
+      conn= await getConnection();
       const idTrade = await conn.query(`SELECT
             idtraslado
           FROM

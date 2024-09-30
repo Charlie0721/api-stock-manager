@@ -1,4 +1,4 @@
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { StockManagerParamsDto } from "../interface/stock_manager-params.dto";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 
@@ -9,8 +9,8 @@ export class StocManagerParamsService {
     uuid: string,
     stockManagerParamsDto: StockManagerParamsDto
   ) {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
+    conn = await getConnection();
 
     const salerId = stockManagerParamsDto.getIdVendedor();
     const customerId = stockManagerParamsDto.getIdCliente();
@@ -40,10 +40,10 @@ export class StocManagerParamsService {
   }
 
   public async getOne(uuid: string) {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+   let conn;
 
     try {
+      conn = await getConnection();
       const [rows] = await conn.query<RowDataPacket[]>(
         `SELECT Id_Vendedor, Id_Cliente, Id_Almacen
               FROM param_stock_manager psm

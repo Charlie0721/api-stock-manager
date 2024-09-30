@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { IIngMovInvEntrada } from "../interface/movementInventory.interface";
 
 export class InventoryMovements {
@@ -10,8 +10,9 @@ export class InventoryMovements {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    let conn;
     try {
-      const conn = await connect();
+      conn = await getConnection();
       const idalm = req.params.idalmacen;
       const consecutive = await conn.query(
         `SELECT numero, idconceptajuste FROM ctrajustes WHERE numero > 0 AND idconceptajuste = 1 AND idalmacen=${idalm}`
@@ -35,8 +36,9 @@ export class InventoryMovements {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    let conn;
     try {
-      const conn = await connect();
+      conn = await getConnection();
       const limit = Number(req.query.limit) || 10;
       const page = Number(req.query.page) || 1;
       const offset = (page - 1) * limit;
@@ -75,8 +77,9 @@ export class InventoryMovements {
     req: Request,
     res: Response
   ): Promise<Response> => {
+    let conn;
     try {
-      const conn = await connect();
+      conn = await getConnection();
       const warehouses = await conn.query(
         `SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`
       );
@@ -90,8 +93,9 @@ export class InventoryMovements {
    */
 
   static getProductStock = async (req: Request, res: Response) => {
+    let conn;
     try {
-      const conn = await connect();
+      conn = await getConnection();
       const idalmacen: string = req.params.idalmacen;
       const limit = Number(req.query.limit) || 2;
       const page = Number(req.query.page) || 1;
@@ -153,8 +157,7 @@ export class InventoryMovements {
    * Guardar el movimiento de inventario
    */
   static saveInventoryMovement = async (req: Request, res: Response) => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    const conn = await getConnection();
 
     try {
       await conn.query(`START TRANSACTION`);
@@ -211,10 +214,11 @@ export class InventoryMovements {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    const pool = await connect();
-    const conn = await pool.getConnection();
+    let conn;
 
     try {
+      conn = await getConnection();
+
       const idPurshable = await conn.query(`SELECT
             idajuste
           FROM

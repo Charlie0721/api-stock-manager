@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { connect } from "../database";
+import { getConnection } from "../database";
 import { IFechas } from "../interface/fechas.interface";
 
 export const SearchPrices = async (req: Request, res: Response) => {
-  const pool = await connect();
-  const conn = await pool.getConnection();
+ let conn;
 
   try {
+    conn = await getConnection();
     const newPrices: IFechas = req.body;
     const response =
       await conn.query(`SELECT a.idproducto, c.descripcion, c.codigo, c.barcode, precioalm(c.idproducto, 1, 1) AS precioventa, precioalm(c.idproducto, 1, 2) AS precioespecial1, c.referencia, c.equipum, c.nomequipum
