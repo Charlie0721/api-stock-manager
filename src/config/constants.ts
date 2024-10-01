@@ -2,7 +2,7 @@
 export const HOST = "localhost";
 export const USER = "root";
 export const PASSWORD = "conexion1234";
-export const DATABASE = "empresa002";
+export const DATABASE = "empresa006";
 
 //# ruta para guardar los archivos texto del recolector
 export const DIRECTORYTOSAVE = "/Users/Desarrollo Carlos/Documents/";

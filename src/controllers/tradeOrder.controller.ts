@@ -280,7 +280,7 @@ export class TradeOrder {
 
       await conn.query(`COMMIT`);
 
-      return res.status(200).json({
+      return res.status(201).json({
         id: orderId,
         responseOrder,
         ...newOrder,

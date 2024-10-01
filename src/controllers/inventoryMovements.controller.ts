@@ -17,15 +17,16 @@ export class InventoryMovements {
       const consecutive = await conn.query(
         `SELECT numero, idconceptajuste FROM ctrajustes WHERE numero > 0 AND idconceptajuste = 1 AND idalmacen=${idalm}`
       );
-      if (conn) {
-        await conn.end();
-      }
       return res.json({
         number: consecutive[0],
       });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error });
+    } finally {
+      if (conn) {
+        conn.release();
+      }
     }
   };
   /**
@@ -52,9 +53,7 @@ export class InventoryMovements {
             idtercero
           LIMIT
           ${limit} OFFSET ${offset}  `);
-      if (conn) {
-        await conn.end();
-      }
+
       const totalItems = thirdParties.length;
       const totalPages = Math.ceil(totalItems / limit);
       return res.status(200).json({
@@ -66,6 +65,8 @@ export class InventoryMovements {
       });
     } catch (error) {
       return res.status(500).json({ message: error });
+    } finally {
+      if (conn) conn.release();
     }
   };
 
@@ -86,6 +87,8 @@ export class InventoryMovements {
       return res.status(200).json(warehouses[0]);
     } catch (error) {
       return res.status(500).json({ message: error });
+    } finally {
+      if (conn) conn.release();
     }
   };
   /**
@@ -130,11 +133,6 @@ export class InventoryMovements {
           offset,
         ]
       );
-
-      if (conn) {
-        await conn.end();
-      }
-
       if (stockProducto.length > 0) {
         const totalItems = stockProducto.length;
         const totalPages = Math.ceil(totalItems / limit);
@@ -150,6 +148,8 @@ export class InventoryMovements {
       }
     } catch (error) {
       return res.status(500).json({ message: error });
+    } finally {
+      if (conn) conn.release();
     }
   };
 
@@ -223,9 +223,7 @@ export class InventoryMovements {
             idajuste
           FROM
             ctrajustes;`);
-      if (conn) {
-        await conn.end();
-      }
+
       return res.status(200).json(idPurshable[0]);
     } catch (error) {
       console.log(error);
