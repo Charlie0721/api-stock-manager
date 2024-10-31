@@ -8,9 +8,9 @@ export class TransfersToCxPos {
     req: Request,
     res: Response
   ): Promise<Response> => {
-let conn;
+    let conn;
     try {
-      conn= await getConnection();
+      conn = await getConnection();
       const originNumbreTransfer = await conn.query(`SELECT
               COUNT(numtrasladoorigen) as result
             FROM
@@ -24,7 +24,7 @@ let conn;
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        conn.end();
+        conn.release();
       }
     }
   };
@@ -34,9 +34,9 @@ let conn;
     req: Request,
     res: Response
   ): Promise<Response> => {
-  let conn;
+    let conn;
     try {
-      conn= await getConnection();
+      conn = await getConnection();
       const warehouses = await conn.query(
         `SELECT idalmacen, nomalmacen FROM almacenes WHERE activo = 1`
       );
@@ -57,9 +57,9 @@ let conn;
     req: Request,
     res: Response
   ): Promise<Response> => {
-   let conn;
+    let conn;
     try {
-      conn= await getConnection();
+      conn = await getConnection();
       const idalmacen: string = req.params.idalmacen;
 
       const limit = Number(req.query.limit) || 2;
@@ -120,7 +120,6 @@ let conn;
 
   /**Enviar traslados */
   static sendTransfer = async (req: Request, res: Response) => {
- 
     const conn = await getConnection();
     try {
       try {
@@ -192,10 +191,10 @@ let conn;
     req: Request,
     res: Response
   ): Promise<Response> => {
-   let conn;
+    let conn;
 
     try {
-      conn= await getConnection();
+      conn = await getConnection();
       const idTrade = await conn.query(`SELECT
             idtraslado
           FROM
