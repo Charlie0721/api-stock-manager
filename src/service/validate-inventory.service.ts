@@ -62,7 +62,7 @@ export class ValidateInventory {
     }
 
     if (invalidProducts.length > 0) {
-      message = `No puede cargar pedido !!. 
+      message = `No puede cargar pedido !. 
       Los siguientes productos no cuentan con stock suficiente en inventario:  ${invalidProducts
         .map(
           (p) =>
