@@ -5,6 +5,7 @@ import { IcreateClient } from "../interface/createClient.interface";
 import { RowDataPacket } from "mysql2";
 import { INeighborhoodsInterface } from "../interface/neighborhoods.interface";
 import { ResultSetHeader } from "mysql2/promise";
+import { ValidateInventory } from "../service/validate-inventory.service";
 
 export class TradeOrder {
   static getProducts = async (req: Request, res: Response) => {
@@ -212,15 +213,44 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-    // Obtener pool de conexiones
-    const conn = await getConnection(); // Obtener una conexión
+   
+    const conn = await getConnection();
+    let orderId: number;
+    let responseOrder;
+  
     try {
-      await conn.query(`START TRANSACTION`); // Iniciar transacción
-
+      await conn.query(`START TRANSACTION`);
+  
       const newOrder: ItradeOrderHeader = req.body;
-
-      // Insertar en la tabla pedidos
-      const [responseOrder] = await conn.query<ResultSetHeader>(
+      const validateInventory = new ValidateInventory();
+  
+      // Obtener los IDs y cantidades de los productos
+      let productIds: Array<number> = [];
+      let quantities: Array<number> = [];
+      newOrder.detpedidos.forEach((product) => {
+        productIds.push(product.idproducto);
+        quantities.push(product.cantidad);
+      });
+  
+      // Obtener el parámetro para facturar sin existencias
+      const factsInExistParam = await validateInventory.getFactsInExistParam();
+  
+      // Validar las existencias de inventario solo si el parámetro está en 0
+      if (factsInExistParam === 0) {
+        const message = await validateInventory.validateStockParameter(
+          newOrder.idalmacen,
+          productIds,
+          quantities
+        );
+  
+        if (message) {
+          // Devuelve el mensaje de error si hay productos con cantidad insuficiente
+          return res.status(400).json({ message });
+        }
+      }
+  
+      // Insertar la orden independientemente del valor del parámetro
+      [responseOrder] = await conn.query<ResultSetHeader>(
         `INSERT INTO pedidos (numero, idtercero, fecha, idvendedor, subtotal, valortotal, valimpuesto, valiva, valdescuentos, valretenciones, detalle, fechacrea, hora, plazo, idalmacen, estado, fechavenc, idsoftware)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -244,16 +274,8 @@ export class TradeOrder {
           newOrder.idsoftware,
         ]
       );
-
-      const orderId = responseOrder.insertId; // Obtener ID del pedido insertado
-
-      if (!orderId) {
-        await conn.query(`ROLLBACK`); // Si no se pudo insertar el pedido, hacer rollback
-        return res
-          .status(400)
-          .json({ message: "No se pudo insertar la orden." });
-      }
-
+      orderId = responseOrder.insertId;
+  
       // Insertar los detalles del pedido
       const detpedidosPromises = newOrder.detpedidos.map((item) =>
         conn.query(
@@ -275,11 +297,9 @@ export class TradeOrder {
           ]
         )
       );
-
       await Promise.all(detpedidosPromises);
-
+  
       await conn.query(`COMMIT`);
-
       return res.status(201).json({
         id: orderId,
         responseOrder,
@@ -289,13 +309,13 @@ export class TradeOrder {
     } catch (error) {
       await conn.query(`ROLLBACK`);
       console.error(error);
-      return res
-        .status(500)
-        .json({ error: "Error al insertar la orden", details: error });
+      return res.status(500).json({ error: "Error al insertar la orden", details: error });
     } finally {
       conn.release();
     }
+   
   };
+
   /*obtener el id del ultimo pedido insertado*/
   static getIdTradeOrder = async (
     req: Request,
@@ -523,6 +543,10 @@ export class TradeOrder {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        conn.release();
+      }
     }
   };
 }
