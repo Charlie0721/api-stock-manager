@@ -68,6 +68,10 @@ router.route("/trade-order/get-id").get(TradeOrder.getIdTradeOrder);
 router
   .route("/trade-order/get-order/:numero/:idalmacen")
   .get(TradeOrder.ordersByWarehouseAndNumber);
+router.get(
+  "/trade-order/get-order/send-pdf/:numero/:idalmacen",
+  TradeOrder.sendOrderToPdf
+);
 router.route("/trade-order/create-client").post(TradeOrder.createClient);
 router.route("/data-collector").post(DataCollector.searchProductBarcode);
 router
@@ -123,6 +127,9 @@ router.get(
 );
 router.get("/money-collections/:IdRecaudo", MoneyCollectionController.findOne);
 router.post("/stock-manager-params/:uuid", StockManagerParamsController.create);
-router.get("/stock-manager-params/:Uuid_Usuario", StockManagerParamsController.getOne);
+router.get(
+  "/stock-manager-params/:Uuid_Usuario",
+  StockManagerParamsController.getOne
+);
 
 export default router;

@@ -6,7 +6,9 @@ import { RowDataPacket } from "mysql2";
 import { INeighborhoodsInterface } from "../interface/neighborhoods.interface";
 import { ResultSetHeader } from "mysql2/promise";
 import { ValidateInventory } from "../service/validate-inventory.service";
-
+import puppeteer from "puppeteer";
+import path from "path";
+import fs from "fs";
 export class TradeOrder {
   static getProducts = async (req: Request, res: Response) => {
     let conn;
@@ -213,17 +215,16 @@ export class TradeOrder {
     req: Request,
     res: Response
   ): Promise<Response> => {
-   
     const conn = await getConnection();
     let orderId: number;
     let responseOrder;
-  
+
     try {
       await conn.query(`START TRANSACTION`);
-  
+
       const newOrder: ItradeOrderHeader = req.body;
       const validateInventory = new ValidateInventory();
-  
+
       // Obtener los IDs y cantidades de los productos
       let productIds: Array<number> = [];
       let quantities: Array<number> = [];
@@ -231,10 +232,10 @@ export class TradeOrder {
         productIds.push(product.idproducto);
         quantities.push(product.cantidad);
       });
-  
+
       // Obtener el parámetro para facturar sin existencias
       const factsInExistParam = await validateInventory.getFactsInExistParam();
-  
+
       // Validar las existencias de inventario solo si el parámetro está en 0
       if (factsInExistParam === 0) {
         const message = await validateInventory.validateStockParameter(
@@ -242,13 +243,13 @@ export class TradeOrder {
           productIds,
           quantities
         );
-  
+
         if (message) {
           // Devuelve el mensaje de error si hay productos con cantidad insuficiente
           return res.status(400).json({ message });
         }
       }
-  
+
       // Insertar la orden independientemente del valor del parámetro
       [responseOrder] = await conn.query<ResultSetHeader>(
         `INSERT INTO pedidos (numero, idtercero, fecha, idvendedor, subtotal, valortotal, valimpuesto, valiva, valdescuentos, valretenciones, detalle, fechacrea, hora, plazo, idalmacen, estado, fechavenc, idsoftware)
@@ -275,7 +276,7 @@ export class TradeOrder {
         ]
       );
       orderId = responseOrder.insertId;
-  
+
       // Insertar los detalles del pedido
       const detpedidosPromises = newOrder.detpedidos.map((item) =>
         conn.query(
@@ -298,7 +299,7 @@ export class TradeOrder {
         )
       );
       await Promise.all(detpedidosPromises);
-  
+
       await conn.query(`COMMIT`);
       return res.status(201).json({
         id: orderId,
@@ -309,11 +310,12 @@ export class TradeOrder {
     } catch (error) {
       await conn.query(`ROLLBACK`);
       console.error(error);
-      return res.status(500).json({ error: "Error al insertar la orden", details: error });
+      return res
+        .status(500)
+        .json({ error: "Error al insertar la orden", details: error });
     } finally {
       conn.release();
     }
-   
   };
 
   /*obtener el id del ultimo pedido insertado*/
@@ -362,9 +364,10 @@ export class TradeOrder {
             LEFT JOIN almacenes alm ON p.idalmacen = alm.idalmacen
           WHERE
             numero= ${numero} AND p.idalmacen = ${idAlm};`);
+      //  await this.sendOrderToPdf(response[0]);
+
       return res.status(200).json(response[0]);
     } catch (error) {
-      console.log(error);
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
@@ -373,6 +376,162 @@ export class TradeOrder {
       }
     }
   };
+  static async sendOrderToPdf(req: Request, res: Response) {
+    let conn;
+
+    try {
+      conn = await getConnection();
+      const numero = req.params.numero;
+      const idAlm = req.params.idalmacen;
+      const response = await conn.query<RowDataPacket[]>(`SELECT
+            p.numero, prod.idproducto, p.valimpuesto, p.subtotal, p.valdescuentos, p.valortotal, prod.descripcion, dtp.valorprod, dtp.descuento, dtp.porcdesc, p.fecha, p.hora, t.nombres, t.nit, t.apellidos, dtp.cantidad, alm.nomalmacen
+          FROM
+            detpedidos dtp
+            LEFT JOIN productos prod ON dtp.idproducto = prod.idproducto
+            LEFT JOIN pedidos p ON dtp.idpedido = p.idpedido
+            LEFT JOIN terceros t ON p.idtercero = t.idtercero
+            LEFT JOIN almacenes alm ON p.idalmacen = alm.idalmacen
+          WHERE
+            numero= ${numero} AND p.idalmacen = ${idAlm};`);
+      if (
+        !response ||
+        response[0].length === 0 ||
+        !response[0] ||
+        response[0].length === 0
+      ) {
+        throw new Error("No hay datos disponibles para generar el pedido.");
+      }
+      const data = response[0][0];
+
+      const orderNumber = data.numero;
+      let productList = `<table style="width:100%; border-collapse: collapse; font-size: 10px;">
+      <tr>
+          <th style="text-align: left;">Cant</th>
+          <th style="text-align: left;">Descripción</th>
+          <th style="text-align: left;">Vr Unitario</th>
+          <th style="text-align: left;">Vr Total</th>
+      </tr>`;
+
+      response[0].forEach((item) => {
+        productList += `
+        <tr>
+            <td>${item.cantidad}</td>
+            <td>${item.descripcion}</td>
+            <td>$ ${TradeOrder.formatCurrency(item.valorprod)}</td>
+            <td>$ ${TradeOrder.formatCurrency(
+              item.cantidad * item.valorprod
+            )}</td>
+        </tr>`;
+      });
+
+      productList += `</table>`;
+
+      const htmlContent = `
+    <html>
+    <head>
+      <title>Pedido</title>
+      <style>
+        body { 
+          font-family: Arial, sans-serif; 
+          width: 80mm; 
+          margin: 0 auto; 
+          padding: 5px; 
+          font-size: 10px; 
+        }
+        .header, .footer { 
+          text-align: center; 
+          margin-bottom: 5px; 
+        }
+        .header h2 { 
+          font-size: 12px; 
+          margin: 3px 0; 
+        }
+        .content { 
+          margin-bottom: 10px; 
+        }
+        .total { 
+          font-weight: bold; 
+          text-align: right; 
+          margin-top: 8px; 
+          font-size: 10px; 
+        }
+        .product-details { 
+          display: flex; 
+          justify-content: space-between; 
+          gap: 5px; 
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h2>${data.nomalmacen}</h2>
+          <p>Fecha: ${TradeOrder.formatDate(data.fecha)} Hora: ${data.hora}</p>
+          <p>Pedido Nro. ${orderNumber}</p>
+          <p>${data.nombres} ${data.apellidos}</p>
+          <p>Nit/CC: ${data.nit}</p>
+        </div>
+        <div class="content">
+          ${productList}
+          <div class="total">
+              <p>SUBTOTAL: ${TradeOrder.formatCurrency(data.subtotal)}</p>
+        <p>IVA: ${TradeOrder.formatCurrency(data.valimpuesto)}</p>
+        <p>TOTAL: ${TradeOrder.formatCurrency(data.valortotal)}</p>
+          </div>
+        </div>
+        <div class="footer">
+          <p>Software: https://conexionpos.com/</p>
+        </div>
+      </div>
+    </body>
+    </html>`;
+
+      // Iniciar Puppeteer
+      const browser = await puppeteer.launch({ headless: true });
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+
+      await page.setViewport({ width: 300, height: 600 });
+
+      const pdfBuffer = await page.pdf({
+        format: "A4",
+        printBackground: true,
+      });
+
+      await browser.close();
+
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error("Error generando el PDF.");
+      }
+
+      res.set({
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename=pedido_${orderNumber}.pdf`,
+        "Content-Length": pdfBuffer.length,
+      });
+      fs.writeFileSync("test.pdf", pdfBuffer);
+
+      res.end(pdfBuffer);
+    } catch (error) {
+      console.error("Error en sendOrderToPdf:", error);
+      return res.status(500).json({ error: error });
+    } finally {
+      if (conn) {
+        conn.release();
+        console.log("Conexión liberada correctamente.");
+      }
+    }
+  }
+
+  static formatCurrency(value: number): string {
+    return `$ ${value.toLocaleString("es-CO", { minimumFractionDigits: 2 })}`;
+  }
+  static formatDate(dateString: string): string {
+    const year = dateString.substring(0, 4);
+    const month = dateString.substring(4, 6);
+    const day = dateString.substring(6, 8);
+    return `${day}/${month}/${year}`;
+  }
 
   /**Crear cliente */
   static createClient = async (
