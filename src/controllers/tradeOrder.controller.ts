@@ -509,7 +509,6 @@ export class TradeOrder {
         "Content-Disposition": `inline; filename=pedido_${orderNumber}.pdf`,
         "Content-Length": pdfBuffer.length,
       });
-      fs.writeFileSync("test.pdf", pdfBuffer);
 
       res.end(pdfBuffer);
     } catch (error) {
