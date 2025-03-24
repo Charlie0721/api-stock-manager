@@ -47,7 +47,7 @@ export class ChargePurchases {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };
@@ -152,7 +152,7 @@ export class ChargePurchases {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
-        await conn.end();
+        conn.release();
       }
     }
   };

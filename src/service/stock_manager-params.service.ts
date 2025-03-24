@@ -16,18 +16,24 @@ export class StocManagerParamsService {
     const customerId = stockManagerParamsDto.getIdCliente();
     const warehouseId = stockManagerParamsDto.getIdAlmacen();
     const uuidUser = uuid;
+    const editPrice = stockManagerParamsDto.getEditaPrecio();
+    const editDiscount = stockManagerParamsDto.getEditaDescuento();
     stockManagerParamsDto.setIdVendedor(salerId);
     stockManagerParamsDto.setIdCliente(customerId);
     stockManagerParamsDto.setIdAlmacen(warehouseId);
+    stockManagerParamsDto.setEditaPrecio(editPrice);
+    stockManagerParamsDto.setEditaDescuento(editDiscount);
     try {
       const _stockParams = await conn.query<ResultSetHeader>(
-        `INSERT INTO param_stock_manager (Id_Vendedor,Id_Cliente,Id_Almacen,Uuid_Usuario )
-            VALUES(?,?,?,?)`,
+        `INSERT INTO param_stock_manager (Id_Vendedor,Id_Cliente,Id_Almacen,Uuid_Usuario,Edita_Precio, Edita_Descuento )
+            VALUES(?,?,?,?,?,?)`,
         [
           stockManagerParamsDto.getIdVendedor(),
           stockManagerParamsDto.getIdCliente(),
           stockManagerParamsDto.getIdAlmacen(),
           uuidUser,
+          stockManagerParamsDto.getEditaPrecio(),
+          stockManagerParamsDto.getEditaDescuento(),
         ]
       );
       return _stockParams;
@@ -40,12 +46,12 @@ export class StocManagerParamsService {
   }
 
   public async getOne(uuid: string) {
-   let conn;
+    let conn;
 
     try {
       conn = await getConnection();
       const [rows] = await conn.query<RowDataPacket[]>(
-        `SELECT Id_Vendedor, Id_Cliente, Id_Almacen
+        `SELECT Id_Vendedor, Id_Cliente, Id_Almacen, Edita_Precio, Edita_Descuento
               FROM param_stock_manager psm
               WHERE psm.Uuid_Usuario = ?`,
         [uuid]

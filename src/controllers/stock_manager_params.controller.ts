@@ -11,12 +11,20 @@ export class StockManagerParamsController {
   static create = async (req: Request, res: Response) => {
     const { uuid } = req.params;
 
-    const { Id_Vendedor, Id_Cliente, Id_Almacen } = req.body;
+    const {
+      Id_Vendedor,
+      Id_Cliente,
+      Id_Almacen,
+      Edita_Precio,
+      Edita_Descuento,
+    } = req.body;
 
     const stockManagerParamsDto = new StockManagerParamsDto(
       Id_Vendedor,
       Id_Cliente,
-      Id_Almacen
+      Id_Almacen,
+      Edita_Precio,
+      Edita_Descuento
     );
 
     try {

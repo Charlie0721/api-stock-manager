@@ -3,6 +3,7 @@ export interface ItradeOrderHeader {
     numero: number;
     idtercero: number;
     fecha: string;
+    idpago:null;
     idvendedor: number;
     subtotal: number;
     valortotal: number;
