@@ -417,8 +417,8 @@ export class TradeOrder {
         <tr>
             <td>${item.cantidad}</td>
             <td>${item.descripcion}</td>
-            <td>$ ${TradeOrder.formatCurrency(item.valorprod)}</td>
-            <td>$ ${TradeOrder.formatCurrency(
+            <td>${TradeOrder.formatCurrency(item.valorprod)}</td>
+            <td>${TradeOrder.formatCurrency(
               item.cantidad * item.valorprod
             )}</td>
         </tr>`;
