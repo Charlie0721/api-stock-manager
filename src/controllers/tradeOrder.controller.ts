@@ -427,75 +427,104 @@ export class TradeOrder {
       productList += `</table>`;
 
       const htmlContent = `
-    <html>
-    <head>
-      <title>Pedido</title>
-      <style>
-        body { 
-          font-family: Arial, sans-serif; 
-          width: 80mm; 
-          margin: 0 auto; 
-          padding: 5px; 
-          font-size: 10px; 
-        }
-        .header, .footer { 
-          text-align: center; 
-          margin-bottom: 5px; 
-        }
-        .header h2 { 
-          font-size: 12px; 
-          margin: 3px 0; 
-        }
-        .content { 
-          margin-bottom: 10px; 
-        }
-        .total { 
-          font-weight: bold; 
-          text-align: right; 
-          margin-top: 8px; 
-          font-size: 10px; 
-        }
-        .product-details { 
-          display: flex; 
-          justify-content: space-between; 
-          gap: 5px; 
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h2>${data.nomalmacen}</h2>
-          <p>Fecha: ${TradeOrder.formatDate(data.fecha)} Hora: ${data.hora}</p>
-          <p>Pedido Nro. ${orderNumber}</p>
-          <p>${data.nombres} ${data.apellidos}</p>
-          <p>Nit/CC: ${data.nit}</p>
-        </div>
-        <div class="content">
-          ${productList}
-          <div class="total">
+      <html>
+      <head>
+        <title>Pedido</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            width: 80mm;
+            margin: 0 auto;
+            padding: 5px;
+            font-size: 10px;
+          }
+          .header, .footer {
+            text-align: center;
+            margin-bottom: 5px;
+          }
+          .header h2 {
+            font-size: 12px;
+            margin: 3px 0;
+          }
+          .content {
+            margin-bottom: 10px;
+          }
+          .total {
+            font-weight: bold;
+            text-align: right;
+            margin-top: 8px;
+            font-size: 10px;
+          }
+          .product-details {
+            display: flex;
+            justify-content: space-between;
+            gap: 5px;
+          }
+          html, body {
+            height: auto;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>${data.nomalmacen}</h2>
+            <p>Fecha: ${TradeOrder.formatDate(data.fecha)} Hora: ${
+        data.hora
+      }</p>
+            <p>Pedido Nro. ${orderNumber}</p>
+            <p>${data.nombres} ${data.apellidos}</p>
+            <p>Nit/CC: ${data.nit}</p>
+          </div>
+          <div class="content">
+            ${productList}
+            <div class="total">
               <p>SUBTOTAL: ${TradeOrder.formatCurrency(data.subtotal)}</p>
-        <p>IVA: ${TradeOrder.formatCurrency(data.valimpuesto)}</p>
-        <p>TOTAL: ${TradeOrder.formatCurrency(data.valortotal)}</p>
+              <p>IVA: ${TradeOrder.formatCurrency(data.valimpuesto)}</p>
+              <p>TOTAL: ${TradeOrder.formatCurrency(data.valortotal)}</p>
+            </div>
+          </div>
+          <div class="footer">
+            <p>Software: https://conexionpos.com/</p>
           </div>
         </div>
-        <div class="footer">
-          <p>Software: https://conexionpos.com/</p>
-        </div>
-      </div>
-    </body>
-    </html>`;
+      </body>
+      </html>`;
 
       // Iniciar Puppeteer
       const browser = await puppeteer.launch({ headless: true });
       const page = await browser.newPage();
+
       await page.setContent(htmlContent, { waitUntil: "networkidle0" });
 
-      await page.setViewport({ width: 300, height: 600 });
+      const height = await page.evaluate(() => {
+        const body = document.body;
+        const html = document.documentElement;
+
+        const maxHeight = Math.max(
+          body.scrollHeight,
+          body.offsetHeight,
+          html.clientHeight,
+          html.scrollHeight,
+          html.offsetHeight
+        );
+
+        return maxHeight;
+      });
+
+      await page.setViewport({ width: 300, height: height });
 
       const pdfBuffer = await page.pdf({
-        format: "A4",
+        width: "80mm",
+        height: `${height}px`,
         printBackground: true,
+        margin: {
+          top: "0mm",
+          right: "0mm",
+          bottom: "0mm",
+          left: "0mm",
+        },
+        preferCSSPageSize: true,
       });
 
       await browser.close();
