@@ -9,7 +9,7 @@ import {
 } from "../controllers/updateProduct.controller";
 import { ChargePurchases } from "../controllers/recordPurchases.controller";
 import { inventoryQuantities } from "../controllers/checkInventoryQuantities.controller";
-import { connectToApi } from "../controllers/setUrlToAPi.controller";
+import { ConnectToApiController } from "../controllers/setUrlToAPi.controller";
 import { TradeOrder } from "../controllers/tradeOrder.controller";
 import { DataCollector } from "../controllers/dataRecolector.controller";
 import { ControlTime } from "../controllers/control_time";
@@ -57,7 +57,8 @@ router.route("/purchases/send-headers").post(ChargePurchases.savePurchase);
 router.route("/purchases/get-taxes").get(ChargePurchases.getIva);
 router.route("/purchases/get-id").get(ChargePurchases.getIdPurshable);
 router.route("/products/get-quantities").get(inventoryQuantities);
-router.route("/connect-api").post(connectToApi);
+router.route("/connect-api").post(ConnectToApiController.saveUrlApi);
+router.get("/connect-api", ConnectToApiController.findAll);
 router.route("/trade-order/header").post(TradeOrder.insertOrder);
 router.route("/trade-order/employee").get(TradeOrder.getEmployee);
 router.route("/trade-order/customer").get(TradeOrder.getCustomer);
