@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { getConnection } from "../database";
 import { IHeaderPurchases } from "../interface/recordPurchases.interface";
+import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { PurchasesService } from "../service/purshases.service";
 
 export class ChargePurchases {
   /**
@@ -117,16 +119,18 @@ export class ChargePurchases {
 
     try {
       conn = await getConnection();
-      const suppliers = await conn.query(
-        `SELECT idtercero, nombres, nit FROM terceros WHERE proveedor = 1`
+      const [suppliers] = await conn.query<RowDataPacket[]>(
+        `SELECT idtercero, nombres, nit, tipofactcompras FROM terceros WHERE proveedor = 1`
       );
-      return res.json(suppliers[0]);
+
+      return res.json(suppliers);
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: error });
     } finally {
       if (conn) {
         conn.release();
+        console.log("La conexión se cerró correctamente.");
       }
     }
   };
@@ -162,19 +166,53 @@ export class ChargePurchases {
    */
   static savePurchase = async (req: Request, res: Response) => {
     const conn = await getConnection();
-
+    let purshaseId: number;
+    let responsePurchases;
     try {
       const conn = await getConnection();
       await conn.query(`START TRANSACTION`);
       const newPurshase: IHeaderPurchases = req.body;
-      const [responsePurchases] = await conn.query(
-        `INSERT INTO compras (idtercero,docprovee,prefijo,numero,fechadocprov,fecha,detalle,idalmacen,idpago,aprobada)
-            VALUES (?,?,?,?,?,?,?,?,?,?)`,
+
+      const purchasesService = new PurchasesService();
+      const resolutionCategoryType =
+        await purchasesService.getResolutionCategoryTypeByThirdParty(
+          newPurshase.idtercero
+        );
+      const resolution = await purchasesService.getResolutions(
+        resolutionCategoryType,
+        newPurshase.idalmacen
+      );
+      let prefix: string = "";
+      let resolutionId: number = 0;
+
+      for (const _resolution of resolution) {
+        if (_resolution.categoresol === resolutionCategoryType) {
+          prefix = _resolution.prefijo;
+          resolutionId = _resolution.idresolucion;
+          break;
+        }
+      }
+      if (resolution.length === 0) {
+        return res.status(400).json({
+          message: "No hay resoluciones disponibles para este Almacén.",
+        });
+      }
+
+      const purshaseNumber =
+        await purchasesService.getPurshaseNumberByResolutionId(
+          resolutionId,
+          newPurshase.idalmacen
+        );
+
+      [responsePurchases] = await conn.query<ResultSetHeader>(
+        `INSERT INTO compras (idresolucion,prefijo,numero,idtercero,docprovee,fechadocprov,fecha,detalle,idalmacen,idpago,aprobada)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
         [
+          resolutionId,
+          prefix,
+          purshaseNumber,
           newPurshase.idtercero,
           newPurshase.docprovee,
-          newPurshase.prefijo,
-          newPurshase.numero,
           newPurshase.fechadocprov,
           newPurshase.fecha,
           newPurshase.detalle,
@@ -183,16 +221,13 @@ export class ChargePurchases {
           newPurshase.aprobada,
         ]
       );
-      const result = Object.values(
-        JSON.parse(JSON.stringify(responsePurchases))
-      );
-      newPurshase.detcompras.forEach(async (item) => {
-        result[2] = item.idcompra;
-        await conn.query(
+      purshaseId = responsePurchases.insertId;
+      const detComprasPromises = newPurshase.detcompras.map((item) =>
+        conn.query(
           `INSERT INTO detcompras (idcompra,idmovorden,idproducto,porciva,codiva,valor,cantidad,precioventa)
-                VALUES (?,?,?,?,?,?,?,?)`,
+            VALUES (?,?,?,?,?,?,?,?)`,
           [
-            item.idcompra,
+            purshaseId,
             item.idmovorden,
             item.idproducto,
             item.porciva,
@@ -201,8 +236,9 @@ export class ChargePurchases {
             item.cantidad,
             item.precioventa,
           ]
-        );
-      });
+        )
+      );
+      await Promise.all(detComprasPromises);
       await conn.query(`COMMIT`);
       if (responsePurchases)
         return res.status(200).json({ responsePurchases, ...newPurshase });
@@ -212,6 +248,7 @@ export class ChargePurchases {
       return res.status(500).json({ error: error });
     } finally {
       if (conn) conn.release();
+      console.log("La conexión se cerró correctamente.");
     }
   };
 

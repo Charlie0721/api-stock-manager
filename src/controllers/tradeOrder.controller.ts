@@ -198,8 +198,7 @@ export class TradeOrder {
       conn = await getConnection();
       const idalm = req.params.idalmacen;
       const [numberResult] = await conn.query<RowDataPacket[]>(
-        `
-            SELECT COUNT(p1.numero) AS numero FROM pedidos p1 WHERE p1.idalmacen=? AND p1.numero > 0`,
+        `SELECT COUNT(p1.numero) AS numero FROM pedidos p1 WHERE p1.idalmacen=? AND p1.numero > 0`,
         [idalm]
       );
       const number = numberResult[0].numero || 0;
