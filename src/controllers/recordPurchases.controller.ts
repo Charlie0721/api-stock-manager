@@ -241,7 +241,7 @@ export class ChargePurchases {
       await Promise.all(detComprasPromises);
       await conn.query(`COMMIT`);
       if (responsePurchases)
-        return res.status(200).json({ responsePurchases, ...newPurshase });
+        return res.status(200).json({ responsePurchases, ...newPurshase, number:purshaseNumber });
     } catch (error) {
       await conn.query(`ROLLBACK`);
       console.log(error);

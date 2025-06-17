@@ -298,7 +298,6 @@ export class TradeOrder {
         )
       );
       await Promise.all(detpedidosPromises);
-
       await conn.query(`COMMIT`);
       return res.status(201).json({
         id: orderId,
