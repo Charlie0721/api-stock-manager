@@ -17,23 +17,27 @@ export class DataCollector {
 
     try {
       conn = await getConnection();
-      let barcodeFound: ISearchByBarcodeToCollector = req.body.barcode;
-      const response = await conn.query(
-        `SELECT descripcion, precioventa, barrasprod.barcode, productos.barcode
-        FROM
-           productos
-           LEFT JOIN 
-           barrasprod ON productos.idproducto = barrasprod.idproducto
-        WHERE
-             productos.barcode = ${barcodeFound} OR barrasprod.barcode = ${barcodeFound}
-        GROUP BY
-            productos.idproducto`
-      );
+      const barcodeFound: string = req.body.barcode; // Asumo que es string
 
-      return res.status(200).json(response[0]);
+      // Consulta optimizada
+      const [response] = await conn.query<RowDataPacket[]>(
+        `SELECT 
+         p.idproducto,
+         p.descripcion, 
+         p.precioventa, 
+         p.barcode AS primary_barcode,
+         GROUP_CONCAT(br.barcode) AS alternative_barcodes
+       FROM productos p
+       LEFT JOIN barrasprod br ON p.idproducto = br.idproducto
+       WHERE p.barcode = ? OR br.barcode = ?
+       GROUP BY p.idproducto
+       LIMIT 1`, // Limitar a 1 resultado si solo esperas uno
+        [barcodeFound, barcodeFound] // Usar parámetros preparados
+      );
+      return res.status(200).json(response || null);
     } catch (error) {
-      console.log(error);
-      return res.status(500).json({ error: error });
+      console.error("Error en searchProductBarcode:", error);
+      return res.status(500).json({ error: "Error al buscar producto" });
     } finally {
       if (conn) {
         conn.release();
