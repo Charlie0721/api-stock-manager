@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { getConnection } from "../database";
-import { ISearchByBarcodeToCollector } from "../interface/barcode.interface";
 import * as fsFiles from "fs";
 import { DIRECTORYTOSAVE } from "../config/constants";
 import { RowDataPacket } from "mysql2";
@@ -17,9 +16,8 @@ export class DataCollector {
 
     try {
       conn = await getConnection();
-      const barcodeFound: string = req.body.barcode; // Asumo que es string
+      const barcodeFound: string = req.body.barcode; 
 
-      // Consulta optimizada
       const [response] = await conn.query<RowDataPacket[]>(
         `SELECT 
          p.idproducto,
@@ -31,8 +29,8 @@ export class DataCollector {
        LEFT JOIN barrasprod br ON p.idproducto = br.idproducto
        WHERE p.barcode = ? OR br.barcode = ?
        GROUP BY p.idproducto
-       LIMIT 1`, // Limitar a 1 resultado si solo esperas uno
-        [barcodeFound, barcodeFound] // Usar parámetros preparados
+       LIMIT 1`, 
+        [barcodeFound, barcodeFound] 
       );
       return res.status(200).json(response || null);
     } catch (error) {
