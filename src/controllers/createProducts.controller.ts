@@ -27,8 +27,6 @@ export class ProductClass {
         [`${codigo}%`]
       );
       if (responseCode.length > 0) {
-        console.log(responseCode);
-
         return res.status(200).json({
           code: responseCode,
         });
@@ -206,7 +204,7 @@ export class ProductClass {
            MAX(p.idproducto) AS ultimo_id
            FROM productos p`);
       if (conn) {
-        await conn.end();
+        await conn.release();
       }
       if (productId.length > 0) {
         return res.json(productId[0]);
@@ -238,7 +236,7 @@ export class ProductClass {
        GROUP BY
        p.idproducto`);
       if (conn) {
-        await conn.end();
+        await conn.release();
       }
       //@ts-ignore
       if (rows.length <= 0) {
