@@ -5,6 +5,7 @@ import {
   ProductsI,
 } from "../interface/CreateProducts.interface";
 import { IAddBarcodes } from "../interface/barcode.interface";
+import { RowDataPacket } from "mysql2";
 
 export class ProductClass {
   /**
@@ -16,19 +17,20 @@ export class ProductClass {
     try {
       conn = await getConnection();
       const codigo = req.query.codigo;
-      const responseCode = await conn.query(`SELECT
-                MAX(p.codigo) AS ultimo_codigo,
-                p.codigo, n.codigo, n.idregistro
-              FROM
-                estproductos est
-                INNER JOIN productos p ON est.idproducto = p.idproducto
-                INNER JOIN nivelesprod n ON est.idregistro = n.idregistro
-              WHERE
-                n.codigo = ${codigo}
-            `);
+      const [responseCode] = await conn.query<RowDataPacket[]>(
+        `SELECT
+          MAX(p.codigo) AS ultimo_codigo
+        FROM
+          productos p
+        WHERE
+          p.codigo LIKE ?`,
+        [`${codigo}%`]
+      );
       if (responseCode.length > 0) {
+        console.log(responseCode);
+
         return res.status(200).json({
-          code: responseCode[0],
+          code: responseCode,
         });
       }
     } catch (error) {
