@@ -132,5 +132,10 @@ router.get(
   "/stock-manager-params/:Uuid_Usuario",
   StockManagerParamsController.getOne
 );
+router.get(
+  "/trade-order/paginate-orders/:warehouseId/:sellerId",
+  TradeOrder.paginateOrders
+);
+router.get("/trade-order/:orderId", TradeOrder.getOrderById);
 
 export default router;

@@ -6,10 +6,10 @@ import { RowDataPacket } from "mysql2/promise";
  */
 
 export const inventoryQuantities = async (req: Request, res: Response) => {
- let conn;
+  let conn;
 
   try {
-    conn= await getConnection();
+    conn = await getConnection();
     const limit = Number(req.query.limit) || 10;
     const page = Number(req.query.page) || 1;
     const offset = (page - 1) * limit;

@@ -6,6 +6,7 @@ import { RowDataPacket } from "mysql2";
 import { INeighborhoodsInterface } from "../interface/neighborhoods.interface";
 import { ResultSetHeader } from "mysql2/promise";
 import { ValidateInventory } from "../service/validate-inventory.service";
+import { OrdersService } from "../service/orders.service";
 import puppeteer from "puppeteer";
 import path from "path";
 import fs from "fs";
@@ -732,6 +733,52 @@ export class TradeOrder {
       if (conn) {
         conn.release();
       }
+    }
+  };
+
+  static paginateOrders = async (req: Request, res: Response) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const warehouseId = Number(req.params.warehouseId);
+    const sellerId = Number(req.params.sellerId);
+    const date = req.query.date as string | undefined;
+    const number = req.query.number ? Number(req.query.number) : undefined;
+
+    const ordersService = new OrdersService();
+    const {
+      message,
+      data,
+      limit: currentLimit,
+      page: currentPage,
+    } = await ordersService.paginateOrders(
+      page,
+      limit,
+      warehouseId,
+      sellerId,
+      date,
+      number
+    );
+
+    return res.status(200).json({
+      data,
+      limit: currentLimit,
+      page: currentPage,
+      message,
+    });
+  };
+
+  static getOrderById = async (req: Request, res: Response) => {
+    const orderId = Number(req.params.orderId);
+    const ordersService = new OrdersService();
+    try {
+      const { message, data } = await ordersService.getOrderById(orderId);
+      return res.status(200).json({
+        message,
+        data,
+      });
+    } catch (error) {
+      console.error("Error fetching order by id:", error);
+      return res.status(500).json({ error: "Error fetching order by id" });
     }
   };
 }
