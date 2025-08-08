@@ -15,7 +15,7 @@ export class ValidateInventory {
 
   // Método público para validar existencias
   public async validateStockParameter(
-    warehouseId: number,
+    warehouseId: number | undefined,
     productIds: Array<number>,
     quantities: Array<number>
   ): Promise<string> {
@@ -29,7 +29,7 @@ export class ValidateInventory {
 
   // Método privado para verificar cantidades en inventario
   private async validateQuantities(
-    warehouseId: number,
+    warehouseId: number | undefined,
     productIds: Array<number>,
     quantities: Array<number>
   ): Promise<string> {

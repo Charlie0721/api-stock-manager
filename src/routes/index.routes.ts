@@ -137,5 +137,6 @@ router.get(
   TradeOrder.paginateOrders
 );
 router.get("/trade-order/:orderId", TradeOrder.getOrderById);
+router.put("/trade-order/:orderId", TradeOrder.updateOrder);
 
 export default router;

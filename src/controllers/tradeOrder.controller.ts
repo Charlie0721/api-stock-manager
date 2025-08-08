@@ -781,4 +781,18 @@ export class TradeOrder {
       return res.status(500).json({ error: "Error fetching order by id" });
     }
   };
+
+ static updateOrder = async (req: Request, res: Response) => {
+  const orderId = Number(req.params.orderId);
+  const ordersService = new OrdersService();
+
+  try {
+    const result = await ordersService.updateOrder(orderId, req.body);
+    return res.status(result.status).json({ message: result.message });
+  } catch (error) {
+    console.error("Error updating order:", error);
+    return res.status(500).json({ error: "Error updating order" });
+  }
+};
+
 }
