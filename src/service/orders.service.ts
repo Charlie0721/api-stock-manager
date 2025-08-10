@@ -17,7 +17,7 @@ export class OrdersService {
       conn = await getConnection();
       const offset = (page - 1) * limit;
       const [result] = await conn.query<RowDataPacket[]>(
-        `SELECT  idpedido, numero, fecha, alm.nomalmacen, t.nombres, t.apellidos
+        `SELECT  idpedido, numero, fecha, valortotal, alm.nomalmacen, t.nombres, t.apellidos
         FROM pedidos p
         LEFT JOIN almacenes alm ON p.idalmacen = alm.idalmacen
         LEFT JOIN terceros t ON p.idtercero = t.idtercero
