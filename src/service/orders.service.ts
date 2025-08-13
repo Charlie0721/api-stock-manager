@@ -59,7 +59,7 @@ export class OrdersService {
       const [order] = await conn.query<RowDataPacket[]>(
         `SELECT
            p.idpedido, p.numero, prod.idproducto, p.valimpuesto, p.subtotal, p.valdescuentos, p.valortotal, prod.descripcion, dtp.valorprod, dtp.descuento,
-            dtp.porcdesc, p.fecha, p.hora, t.nombres, t.nit, t.apellidos, dtp.cantidad, alm.nomalmacen
+            dtp.porcdesc, p.fecha, p.hora, t.nombres, t.nit, t.apellidos, dtp.cantidad, alm.nomalmacen, alm.idalmacen
           FROM
             detpedidos dtp
             LEFT JOIN productos prod ON dtp.idproducto = prod.idproducto
