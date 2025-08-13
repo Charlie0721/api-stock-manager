@@ -2,6 +2,8 @@ import { RowDataPacket } from "mysql2";
 import { getConnection } from "../database";
 import { ValidateInventory } from "./validate-inventory.service";
 import { ItradeOrderHeader } from "../interface/tradeOrder.interface";
+import { Query } from "mysql2/typings/mysql/lib/protocol/sequences/Query";
+import { query } from "express";
 
 export class OrdersService {
   public async paginateOrders(
@@ -36,6 +38,8 @@ export class OrdersService {
       if (result.length === 0) {
         return { message: "No orders found" };
       }
+
+      
       return {
         message: "Orders paginated",
         data: result,
@@ -70,6 +74,7 @@ export class OrdersService {
             p.idpedido = ?`,
         [orderId]
       );
+            
       if (order.length === 0) {
         return { message: "Order not found" };
       }
