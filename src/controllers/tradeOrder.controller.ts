@@ -198,15 +198,20 @@ export class TradeOrder {
     try {
       conn = await getConnection();
       const idalm = req.params.idalmacen;
+
       const [numberResult] = await conn.query<RowDataPacket[]>(
-        `SELECT COUNT(p1.numero) AS numero FROM pedidos p1 WHERE p1.idalmacen=? AND p1.numero > 0`,
+        `SELECT COALESCE(MAX(p1.numero), 0) AS numero
+       FROM pedidos p1
+       WHERE p1.idalmacen = ?`,
         [idalm]
       );
-      const number = numberResult[0].numero || 0;
+
+      const number = numberResult[0].numero;
+     
       return res.json({ numero: number });
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: error });
+      return res.status(500).json({ error });
     }
   };
 
@@ -782,17 +787,16 @@ export class TradeOrder {
     }
   };
 
- static updateOrder = async (req: Request, res: Response) => {
-  const orderId = Number(req.params.orderId);
-  const ordersService = new OrdersService();
+  static updateOrder = async (req: Request, res: Response) => {
+    const orderId = Number(req.params.orderId);
+    const ordersService = new OrdersService();
 
-  try {
-    const result = await ordersService.updateOrder(orderId, req.body);
-    return res.status(result.status).json({ message: result.message });
-  } catch (error) {
-    console.error("Error updating order:", error);
-    return res.status(500).json({ error: "Error updating order" });
-  }
-};
-
+    try {
+      const result = await ordersService.updateOrder(orderId, req.body);
+      return res.status(result.status).json({ message: result.message });
+    } catch (error) {
+      console.error("Error updating order:", error);
+      return res.status(500).json({ error: "Error updating order" });
+    }
+  };
 }
